@@ -6,6 +6,7 @@ public class BuildModeController: MonoBehaviour {
 
 	public GameObject blockPlaceholder;
 	public Material holoYellow;
+	public GameObject spaceship;
 	private GameObject cursorBlock, movedBlock;
 	private Ray ray;
 	private RaycastHit rayHit;
@@ -80,7 +81,8 @@ public class BuildModeController: MonoBehaviour {
 					cursorBlock.SetActive(true);
 				// Place new block
 				if (Input.GetMouseButtonDown(0)) {
-					Instantiate(blockPlaceholder, placementPos, transform.rotation);
+					var newBlock = (GameObject)Instantiate(blockPlaceholder, placementPos, transform.rotation);
+					newBlock.transform.parent = spaceship.transform;
 					cursorBlock.SetActive(false);
 				}
 
