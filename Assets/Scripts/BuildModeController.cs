@@ -4,21 +4,18 @@ using System.Collections;
 
 public class BuildModeController: MonoBehaviour {
 
-	public GameObject blockPlaceholder;
-	public Material holoYellow;
-	public GameObject spaceship;
-	private GameObject cursorBlock, movedBlock;
+	public GameObject cursorBlock, playerSpaceship, selectedBlock; // Initialization prefabs
+	private GameObject _cursorBlockRef, _movedBlockRef; // 
 	private Ray ray;
 	private RaycastHit rayHit;
 	private Vector3 placementPos, oldPos;
-	private float gridSize = 1f;
+	private int gridSize = 1;
 	private bool moveBlock = false;
 
 	// Use this for initialization
 	void Start() {
-		cursorBlock = (GameObject)Instantiate(blockPlaceholder, transform.position, transform.rotation);
-		cursorBlock.GetComponent<Renderer>().material = holoYellow;
-		cursorBlock.SetActive(false);
+		_cursorBlockRef = (GameObject)Instantiate(cursorBlock, transform.position, transform.rotation);
+		_cursorBlockRef.SetActive(false);
 	}
 
 	// Update is called once per frame
@@ -27,7 +24,7 @@ public class BuildModeController: MonoBehaviour {
 		// Mouse pointer position
 		ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 		placementPos = new Vector3(Mathf.Round(ray.origin.x) * gridSize, 0, Mathf.Round(ray.origin.z) * gridSize);
-		cursorBlock.transform.position = new Vector3(Mathf.Round(ray.origin.x) * gridSize, -5, Mathf.Round(ray.origin.z) * gridSize);
+		_cursorBlockRef.transform.position = new Vector3(Mathf.Round(ray.origin.x) * gridSize, -5, Mathf.Round(ray.origin.z) * gridSize);
 
 
 
@@ -36,17 +33,17 @@ public class BuildModeController: MonoBehaviour {
 
 			// Constant movement position update
 			if (!Physics.Raycast(ray, out rayHit, 10f))
-				movedBlock.transform.position = new Vector3(placementPos.x, -5, placementPos.z);
+				_movedBlockRef.transform.position = new Vector3(placementPos.x, -5, placementPos.z);
 			// Confirm block movement
 			if (Input.GetMouseButtonDown(0)) {
-				movedBlock.transform.position = new Vector3(movedBlock.transform.position.x, 0, movedBlock.transform.position.z);
-				movedBlock = null; // Clear memory
+				_movedBlockRef.transform.position = new Vector3(_movedBlockRef.transform.position.x, 0, _movedBlockRef.transform.position.z);
+				_movedBlockRef = null; // Clear memory
 				moveBlock = false;
 			}
 			// Cancel block movement
 			else if (Input.GetMouseButtonDown(1)) {
-				movedBlock.transform.position = oldPos;
-				movedBlock = null; // Clear memory
+				_movedBlockRef.transform.position = oldPos;
+				_movedBlockRef = null; // Clear memory
 				moveBlock = false;
 			}
 
@@ -58,12 +55,12 @@ public class BuildModeController: MonoBehaviour {
 			if (Physics.Raycast(ray, out rayHit, 10f)) {
 
 				// Disable cursor if it's activated
-				if (cursorBlock.activeSelf)
-					cursorBlock.SetActive(false);
+				if (_cursorBlockRef.activeSelf)
+					_cursorBlockRef.SetActive(false);
 				// Move block toggle
 				if (Input.GetMouseButtonDown(0)) {
-					movedBlock = rayHit.collider.gameObject;
-					oldPos = movedBlock.transform.position;
+					_movedBlockRef = rayHit.collider.gameObject;
+					oldPos = _movedBlockRef.transform.position;
 					moveBlock = true;
 				}
 				// Delete block
@@ -77,13 +74,17 @@ public class BuildModeController: MonoBehaviour {
 			else {
 
 				// Activate cursor if it's disabled
-				if (!cursorBlock.activeSelf)
-					cursorBlock.SetActive(true);
+				if (!_cursorBlockRef.activeSelf) {
+					_cursorBlockRef.SetActive(true);
+				}
+
 				// Place new block
 				if (Input.GetMouseButtonDown(0)) {
-					var newBlock = (GameObject)Instantiate(blockPlaceholder, placementPos, transform.rotation);
-					newBlock.transform.parent = spaceship.transform;
-					cursorBlock.SetActive(false);
+
+						var newBlock = (GameObject)Instantiate(selectedBlock, placementPos, transform.rotation);
+						newBlock.transform.parent = playerSpaceship.transform;
+						_cursorBlockRef.SetActive(false);
+
 				}
 
 			}
