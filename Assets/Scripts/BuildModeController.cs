@@ -21,10 +21,14 @@ public class BuildModeController: MonoBehaviour {
 	// Update is called once per frame
 	void Update() {
 
-		// Mouse pointer position
+		// Ray position
 		ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+		//Debug.Log(ray);
+		// Mouse pointer position (block placement)
 		placementPos = new Vector3(Mathf.Round(ray.origin.x) * gridSize, 0, Mathf.Round(ray.origin.z) * gridSize);
-		_cursorBlockRef.transform.position = new Vector3(Mathf.Round(ray.origin.x) * gridSize, -5, Mathf.Round(ray.origin.z) * gridSize);
+		Debug.Log(placementPos);
+		// Mouse cursor position offset
+		_cursorBlockRef.transform.position = placementPos + new Vector3(0, -5, 0);
 
 
 
@@ -73,20 +77,26 @@ public class BuildModeController: MonoBehaviour {
 			// If mouse ray doesn't collides with a block
 			else {
 
-				// Activate cursor if it's disabled
-				if (!_cursorBlockRef.activeSelf) {
-					_cursorBlockRef.SetActive(true);
-				}
+				if (Physics.Raycast(ray.origin + new Vector3(0, 0, -1), ray.direction, out rayHit, 10f) || Physics.Raycast(ray.origin + new Vector3(0, 0, 1), ray.direction, out rayHit, 10f) ||
+					Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 10f) || Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 10f)) {
 
-				// Place new block
-				if (Input.GetMouseButtonDown(0)) {
+					// Activate cursor if it's disabled
+					if (!_cursorBlockRef.activeSelf) {
+						_cursorBlockRef.SetActive(true);
+					}
 
-						var newBlock = (GameObject)Instantiate(selectedBlock, placementPos, transform.rotation);
+					// Place new block
+					if (Input.GetMouseButtonDown(0)) {
+
+						var newBlock = (GameObject) Instantiate(selectedBlock, placementPos, transform.rotation);
 						newBlock.transform.parent = playerSpaceship.transform;
 						_cursorBlockRef.SetActive(false);
 
-				}
+					}
 
+				}
+				else _cursorBlockRef.SetActive(false);
+				
 			}
 
 		}
