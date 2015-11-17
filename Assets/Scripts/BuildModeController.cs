@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections;
+using JetBrains.Annotations;
+using UnityEngine.UI;
 
 public class BuildModeController: MonoBehaviour {
 
@@ -101,6 +103,29 @@ public class BuildModeController: MonoBehaviour {
 
 		}
 
+	}
+
+	public void BlockSelection(int a) {
+		switch (a) {
+			case 1:
+				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
+				break;
+			case 2:
+				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Interior", typeof(GameObject));
+				break;
+			case 3:
+				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Bridge", typeof(GameObject));
+				break;
+			case 4:
+				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Thruster", typeof(GameObject));
+				break;
+			case 5:
+				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Gyroscope", typeof(GameObject));
+				break;
+			case 6:
+				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Reactor", typeof(GameObject));
+				break;
+		}
 	}
 
 }
