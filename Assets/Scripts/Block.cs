@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Diagnostics;
+//using System.Collections;
+//using System.Diagnostics;
 
 public enum blockType {
 	Structure, Interior, Thruster, Gyroscope, Reactor, Bridge

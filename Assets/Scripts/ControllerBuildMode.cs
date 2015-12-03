@@ -1,28 +1,29 @@
-﻿using System;
+﻿//using System;
 using UnityEngine;
-using System.Collections;
-using JetBrains.Annotations;
-using UnityEngine.UI;
+//using System.Collections;
+//using JetBrains.Annotations;
+//using UnityEngine.UI;
 
-public class BuildModeController: MonoBehaviour {
+public class ControllerBuildMode: MonoBehaviour {
 
-	public GameObject cursorBlock, playerSpaceship, selectedBlock; // Initialization prefabs
-	private GameObject _cursorBlockRef, _movedBlockRef; // 
+	public GameObject cursorBlock, playerSpaceship; // Initialization prefabs
+	private GameObject _cursorBlockRef, _movedBlockRef, _selectedBlock; // 
 	private Ray ray;
 	private RaycastHit rayHit;
 	private Vector3 placementPos, oldPos;
 	private int gridSize = 1;
 	private bool moveBlock = false;
-
-	// Use this for initialization
+	
 	void Start() {
+		// Selected block initialization
+		_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
+		
+		// Holocursor initialization
 		_cursorBlockRef = (GameObject)Instantiate(cursorBlock, transform.position, transform.rotation);
 		_cursorBlockRef.SetActive(false);
 	}
-
-	// Update is called once per frame
+	
 	void Update() {
-
 		// Ray position
 		ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 		//Debug.Log(ray);
@@ -31,8 +32,6 @@ public class BuildModeController: MonoBehaviour {
 		Debug.Log(placementPos);
 		// Mouse cursor position offset
 		_cursorBlockRef.transform.position = placementPos + new Vector3(0, -5, 0);
-
-
 
 		// MOVEMENT MODE
 		if (moveBlock) {
@@ -52,9 +51,9 @@ public class BuildModeController: MonoBehaviour {
 				_movedBlockRef = null; // Clear memory
 				moveBlock = false;
 			}
-
 		}
-		// STANDARD MODE
+
+		// BUILD MODE
 		else {
 
 			// If mouse ray collides with a block
@@ -90,7 +89,7 @@ public class BuildModeController: MonoBehaviour {
 					// Place new block
 					if (Input.GetMouseButtonDown(0)) {
 
-						var newBlock = (GameObject) Instantiate(selectedBlock, placementPos, transform.rotation);
+						var newBlock = (GameObject) Instantiate(_selectedBlock, placementPos, transform.rotation);
 						newBlock.transform.parent = playerSpaceship.transform;
 						_cursorBlockRef.SetActive(false);
 
@@ -98,32 +97,32 @@ public class BuildModeController: MonoBehaviour {
 
 				}
 				else _cursorBlockRef.SetActive(false);
-				
+
 			}
 
 		}
 
 	}
 
-	public void BlockSelection(int a) {
-		switch (a) {
+	public void BlockSelection(int i) {
+		switch (i) {
 			case 1:
-				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
+				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
 				break;
 			case 2:
-				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Interior", typeof(GameObject));
+				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Interior", typeof(GameObject));
 				break;
 			case 3:
-				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Bridge", typeof(GameObject));
+				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Bridge", typeof(GameObject));
 				break;
 			case 4:
-				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Thruster", typeof(GameObject));
+				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Thruster", typeof(GameObject));
 				break;
 			case 5:
-				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Gyroscope", typeof(GameObject));
+				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Gyroscope", typeof(GameObject));
 				break;
 			case 6:
-				selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Reactor", typeof(GameObject));
+				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Reactor", typeof(GameObject));
 				break;
 		}
 	}
