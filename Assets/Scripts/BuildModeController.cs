@@ -1,10 +1,13 @@
 ﻿//using System;
+
+using System;
+using System.Net.Sockets;
 using UnityEngine;
 //using System.Collections;
 //using JetBrains.Annotations;
 //using UnityEngine.UI;
 
-public class ControllerBuildMode: MonoBehaviour {
+public class BuildModeController: MonoBehaviour {
 
 	public GameObject cursorBlock, playerSpaceship; // Initialization prefabs
 	private GameObject _cursorBlockRef, _movedBlockRef, _selectedBlock; // 
@@ -29,7 +32,7 @@ public class ControllerBuildMode: MonoBehaviour {
 		//Debug.Log(ray);
 		// Mouse pointer position (block placement)
 		placementPos = new Vector3(Mathf.Round(ray.origin.x) * gridSize, 0, Mathf.Round(ray.origin.z) * gridSize);
-		Debug.Log(placementPos);
+//		Debug.Log(placementPos);
 		// Mouse cursor position offset
 		_cursorBlockRef.transform.position = placementPos + new Vector3(0, -5, 0);
 
@@ -97,14 +100,33 @@ public class ControllerBuildMode: MonoBehaviour {
 
 				}
 				else _cursorBlockRef.SetActive(false);
-
 			}
+		}
+	}
 
+	void LateUpdate() {
+
+		if (Input.GetMouseButton(2)) {
+			float mX = Input.GetAxis("Mouse X"); // Smoothed X axis values
+			float mY = Input.GetAxis("Mouse Y"); // Smoothed Y axis values
+			Vector3 cam = Camera.main.transform.position;
+
+			if (mX != 0) {
+				cam += new Vector3(mX * 0.5f, 0, 0);
+			}
+			if (mY != 0) {
+				cam += new Vector3(0, 0, mY * 0.5f);
+			}
+			cam = new Vector3(Mathf.Clamp(cam.x, -10, 10), cam.y, (Mathf.Clamp(cam.z, -10, 10)));
+			Camera.main.transform.position = cam;
+		}
+		else if (Input.GetKeyDown(KeyCode.Space)) {
+			Camera.main.transform.position = new Vector3(0, 10, 0);
 		}
 
 	}
 
-	public void BlockSelection(int i) {
+public void BlockSelection(int i) {
 		switch (i) {
 			case 1:
 				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
