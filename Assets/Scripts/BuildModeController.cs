@@ -29,12 +29,12 @@ public class BuildModeController: MonoBehaviour {
 	void Update() {
 		// Ray position
 		ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-		//Debug.Log(ray);
 		// Mouse pointer position (block placement)
 		placementPos = new Vector3(Mathf.Round(ray.origin.x) * gridSize, 0, Mathf.Round(ray.origin.z) * gridSize);
-//		Debug.Log(placementPos);
 		// Mouse cursor position offset
-		_cursorBlockRef.transform.position = placementPos + new Vector3(0, -5, 0);
+		_cursorBlockRef.transform.position = placementPos + new Vector3(0, 5, 0);
+
+		/* GITHUB ISSUE SOLUTION #10: Movement Disabled
 
 		// MOVEMENT MODE
 		if (moveBlock) {
@@ -55,71 +55,69 @@ public class BuildModeController: MonoBehaviour {
 				moveBlock = false;
 			}
 		}
+		GITHUB ISSUE SOLUTION #10: Movement Disabled */
 
 		// BUILD MODE
+
+		// If mouse ray collides with a block
+		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
+
+			// Disable cursor if it's activated
+//			if (_cursorBlockRef.activeSelf)
+//				_cursorBlockRef.SetActive(false);
+			// Move block toggle
+//			if (Input.GetMouseButtonDown(0)) {
+//				_movedBlockRef = rayHit.collider.gameObject;
+//				oldPos = _movedBlockRef.transform.position;
+//				moveBlock = true;
+//			}
+
+			// Delete block
+			if (Input.GetMouseButtonDown(1)) {
+				// Delete block
+				Destroy(rayHit.collider.gameObject);
+			}
+
+		}
+		// If mouse ray doesn't collides with a block
 		else {
 
-			// If mouse ray collides with a block
-			if (Physics.Raycast(ray, out rayHit, 10f)) {
+			if (Physics.Raycast(ray.origin + new Vector3(0, 0, -1), ray.direction, out rayHit, 10f) || Physics.Raycast(ray.origin + new Vector3(0, 0, 1), ray.direction, out rayHit, 10f) ||
+				Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 10f) || Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 10f)) {
 
-				// Disable cursor if it's activated
-				if (_cursorBlockRef.activeSelf)
-					_cursorBlockRef.SetActive(false);
-				// Move block toggle
+				// Activate cursor if it's disabled
+				if (!_cursorBlockRef.activeSelf) {
+					_cursorBlockRef.SetActive(true);
+				}
+
+				// Place new block
 				if (Input.GetMouseButtonDown(0)) {
-					_movedBlockRef = rayHit.collider.gameObject;
-					oldPos = _movedBlockRef.transform.position;
-					moveBlock = true;
-				}
-				// Delete block
-				else if (Input.GetMouseButtonDown(1)) {
-					// Delete block
-					Destroy(rayHit.collider.gameObject);
+					var newBlock = (GameObject) Instantiate(_selectedBlock, placementPos, transform.rotation);
+					newBlock.transform.parent = playerSpaceship.transform;
 				}
 
 			}
-			// If mouse ray doesn't collides with a block
-			else {
-
-				if (Physics.Raycast(ray.origin + new Vector3(0, 0, -1), ray.direction, out rayHit, 10f) || Physics.Raycast(ray.origin + new Vector3(0, 0, 1), ray.direction, out rayHit, 10f) ||
-					Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 10f) || Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 10f)) {
-
-					// Activate cursor if it's disabled
-					if (!_cursorBlockRef.activeSelf) {
-						_cursorBlockRef.SetActive(true);
-					}
-
-					// Place new block
-					if (Input.GetMouseButtonDown(0)) {
-
-						var newBlock = (GameObject) Instantiate(_selectedBlock, placementPos, transform.rotation);
-						newBlock.transform.parent = playerSpaceship.transform;
-						_cursorBlockRef.SetActive(false);
-
-					}
-
-				}
-				else _cursorBlockRef.SetActive(false);
-			}
+			else _cursorBlockRef.SetActive(false);
 		}
 	}
 
 	void LateUpdate() {
-
+		// Camera movement
 		if (Input.GetMouseButton(2)) {
 			float mX = Input.GetAxis("Mouse X"); // Smoothed X axis values
 			float mY = Input.GetAxis("Mouse Y"); // Smoothed Y axis values
 			Vector3 cam = Camera.main.transform.position;
 
 			if (mX != 0) {
-				cam += new Vector3(mX * 0.5f, 0, 0);
+				cam += new Vector3(mX * -0.5f, 0, 0);
 			}
 			if (mY != 0) {
-				cam += new Vector3(0, 0, mY * 0.5f);
+				cam += new Vector3(0, 0, mY * -0.5f);
 			}
 			cam = new Vector3(Mathf.Clamp(cam.x, -10, 10), cam.y, (Mathf.Clamp(cam.z, -10, 10)));
 			Camera.main.transform.position = cam;
 		}
+		// Camera reset
 		else if (Input.GetKeyDown(KeyCode.Space)) {
 			Camera.main.transform.position = new Vector3(0, 10, 0);
 		}
