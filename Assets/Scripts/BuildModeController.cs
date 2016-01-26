@@ -73,7 +73,7 @@ public class BuildModeController: MonoBehaviour {
 //			}
 
 			// Delete block
-			if (Input.GetMouseButtonDown(1)) {
+			if (Input.GetMouseButton(1)) {
 				// Delete block
 				Destroy(rayHit.collider.gameObject);
 			}
@@ -83,7 +83,8 @@ public class BuildModeController: MonoBehaviour {
 		else {
 
 			if (Physics.Raycast(ray.origin + new Vector3(0, 0, -1), ray.direction, out rayHit, 10f) || Physics.Raycast(ray.origin + new Vector3(0, 0, 1), ray.direction, out rayHit, 10f) ||
-				Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 10f) || Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 10f)) {
+				Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 10f) || Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 10f) ||
+				playerSpaceship.GetComponentsInChildren<Block>().Length == 0) {
 
 				// Activate cursor if it's disabled
 				if (!_cursorBlockRef.activeSelf) {
@@ -91,14 +92,23 @@ public class BuildModeController: MonoBehaviour {
 				}
 
 				// Place new block
-				if (Input.GetMouseButtonDown(0)) {
+				if (Input.GetMouseButton(0)) {
 					var newBlock = (GameObject) Instantiate(_selectedBlock, placementPos, transform.rotation);
 					newBlock.transform.parent = playerSpaceship.transform;
 				}
 
 			}
 			else _cursorBlockRef.SetActive(false);
+
 		}
+
+		// Hotkeys for block selection
+		if (Input.GetKeyDown("1")) BlockSelection(1);
+		if (Input.GetKeyDown("2")) BlockSelection(2);
+		if (Input.GetKeyDown("3")) BlockSelection(3);
+		if (Input.GetKeyDown("4")) BlockSelection(4);
+		if (Input.GetKeyDown("5")) BlockSelection(5);
+		if (Input.GetKeyDown("6")) BlockSelection(6);
 	}
 
 	void LateUpdate() {
