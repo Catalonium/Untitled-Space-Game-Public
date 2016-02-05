@@ -15,7 +15,7 @@ public class BuildModeController: MonoBehaviour {
 	private RaycastHit rayHit;
 	private Vector3 placementPos, oldPos;
 	private int gridSize = 1;
-	private bool moveBlock = false;
+	private bool moveBlock;
 	
 	void Start() {
 		// Selected block initialization
