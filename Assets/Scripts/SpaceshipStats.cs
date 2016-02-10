@@ -5,9 +5,11 @@ public class SpaceshipStats : MonoBehaviour {
 
 	public float Hull, Mass, EnergyGen, EnergyCon, Maneuver, Thrust;
 	private Block[] blocks;
+	private Rigidbody rb;
 
 	void Start() {
 		blocks = GetComponentsInChildren<Block>();
+		rb = GetComponent<Rigidbody>();
 		StatCalc();
 	}
 
@@ -26,7 +28,7 @@ public class SpaceshipStats : MonoBehaviour {
 
 		foreach (Block b in blocks) {
 			Hull += b.hull;
-			Mass += b.mass;
+			Mass += b.mass;  rb.mass = Mass;
 			EnergyGen += b.energyGen;
 			EnergyCon += b.energyCon;
 			Maneuver += b.maneuver;

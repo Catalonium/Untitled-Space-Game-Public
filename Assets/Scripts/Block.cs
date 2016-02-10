@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-//using System.Collections;
+using System.Collections;
 //using System.Diagnostics;
 
 public enum blockType {
@@ -9,7 +9,7 @@ public enum blockType {
 public class Block : MonoBehaviour {
 
 	public blockType blockType;
-	public bool isBuildable;
+    public bool mountPosN = true, mountPosE = true, mountPosS = true, mountPosW = true;
 	public float hull, mass, energyGen, energyCon, maneuver, thrust;
 
 }
