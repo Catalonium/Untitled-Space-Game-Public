@@ -152,7 +152,7 @@ public void BlockSelection(int i) {
 				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Gyroscope", typeof(GameObject));
 				break;
 			case 6:
-				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Reactor", typeof(GameObject));
+				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Reactor_mk1", typeof(GameObject));
 				break;
 		}
 	}
