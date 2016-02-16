@@ -1,11 +1,13 @@
-﻿//using System;
-
-using System;
+﻿using System;
 using System.Net.Sockets;
 using UnityEngine;
 //using System.Collections;
 //using JetBrains.Annotations;
 //using UnityEngine.UI;
+
+
+//	TODO: Clean-up the code
+//	Author: Adnan Bulut Catikoglu - 2016
 
 public class BuildModeController: MonoBehaviour {
 
@@ -30,7 +32,7 @@ public class BuildModeController: MonoBehaviour {
 		// Ray position
 		ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 		// Mouse pointer position (block placement)
-		placementPos = new Vector3(Mathf.Round(ray.origin.x) * gridSize, 0, Mathf.Round(ray.origin.z) * gridSize);
+		placementPos = new Vector3(Mathf.Round(ray.origin.x) * gridSize, _selectedBlock.transform.position.y, Mathf.Round(ray.origin.z) * gridSize);
 		// Mouse cursor position offset
 		_cursorBlockRef.transform.position = placementPos + new Vector3(0, 5, 0);
 
@@ -59,9 +61,7 @@ public class BuildModeController: MonoBehaviour {
 
 		// BUILD MODE
 
-		// If mouse ray collides with a block
-		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
-
+			
 			// Disable cursor if it's activated
 //			if (_cursorBlockRef.activeSelf)
 //				_cursorBlockRef.SetActive(false);
@@ -72,35 +72,35 @@ public class BuildModeController: MonoBehaviour {
 //				moveBlock = true;
 //			}
 
+
+
+		// Holographic cursor logic
+		if (Physics.Raycast(ray.origin + new Vector3(0, 0, -1), ray.direction, out rayHit, 10f) ||
+		    Physics.Raycast(ray.origin + new Vector3(0, 0, 1), ray.direction, out rayHit, 10f) ||
+		    Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 10f) ||
+		    Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 10f) ||
+		    playerSpaceship.GetComponentsInChildren<Block>().Length == 0) {
+
+			// Activate cursor if it's disabled
+			if (!_cursorBlockRef.activeSelf) {
+				_cursorBlockRef.SetActive(true);
+			}
+
+			// Place block
+			if (Input.GetMouseButtonDown(0)) {
+				// Block placement function call
+				PlaceBlock(_selectedBlock, placementPos, transform.rotation, ray);
+			}
 			// Delete block
-			if (Input.GetMouseButton(1)) {
-				// Delete block
-				Destroy(rayHit.collider.gameObject);
+			if (Input.GetMouseButtonDown(1)) {
+				// Block deletion function call
+				DeleteBlock(ray);
 			}
 
 		}
-		// If mouse ray doesn't collides with a block
-		else {
+		else _cursorBlockRef.SetActive(false);
 
-			if (Physics.Raycast(ray.origin + new Vector3(0, 0, -1), ray.direction, out rayHit, 10f) || Physics.Raycast(ray.origin + new Vector3(0, 0, 1), ray.direction, out rayHit, 10f) ||
-				Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 10f) || Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 10f) ||
-				playerSpaceship.GetComponentsInChildren<Block>().Length == 0) {
 
-				// Activate cursor if it's disabled
-				if (!_cursorBlockRef.activeSelf) {
-					_cursorBlockRef.SetActive(true);
-				}
-
-				// Place new block
-				if (Input.GetMouseButton(0)) {
-					var newBlock = (GameObject) Instantiate(_selectedBlock, placementPos, transform.rotation);
-					newBlock.transform.parent = playerSpaceship.transform;
-				}
-
-			}
-			else _cursorBlockRef.SetActive(false);
-
-		}
 
 		// Hotkeys for block selection
 		if (Input.GetKeyDown("1")) BlockSelection(1);
@@ -134,7 +134,7 @@ public class BuildModeController: MonoBehaviour {
 
 	}
 
-public void BlockSelection(int i) {
+	public void BlockSelection(int i) {
 		switch (i) {
 			case 1:
 				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
@@ -154,6 +154,33 @@ public void BlockSelection(int i) {
 			case 6:
 				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Reactor_mk1", typeof(GameObject));
 				break;
+		}
+	}
+
+	public void PlaceBlock(GameObject selBlock, Vector3 placePos, Quaternion placeRot, Ray ray) {
+		// If mouse ray collides with a block
+		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
+			if (rayHit.collider.gameObject.GetComponent<Block>().blockType == blockType.Interior) {
+				if (_selectedBlock.GetComponent<Block>().isPlaceable) {
+					var newBlock = (GameObject) Instantiate(selBlock, placePos, placeRot);
+					newBlock.transform.parent = playerSpaceship.transform;
+				}
+			}
+		}
+		// If mouse ray doesn't collide with a block
+		else {
+			if (!_selectedBlock.GetComponent<Block>().isPlaceable) {
+				var newBlock = (GameObject) Instantiate(selBlock, placePos, placeRot);
+				newBlock.transform.parent = playerSpaceship.transform;
+			}
+		}
+	}
+
+	public void DeleteBlock(Ray ray) {
+		// If mouse ray collides with a block
+		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
+			// Delete block
+			Destroy(rayHit.collider.gameObject);
 		}
 	}
 
