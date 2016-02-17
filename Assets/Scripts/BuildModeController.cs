@@ -160,8 +160,8 @@ public class BuildModeController: MonoBehaviour {
 	public void PlaceBlock(GameObject selBlock, Vector3 placePos, Quaternion placeRot, Ray ray) {
 		// If mouse ray collides with a block
 		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
-			if (rayHit.collider.gameObject.GetComponent<Block>().blockType == blockType.Interior) {
-				if (_selectedBlock.GetComponent<Block>().isPlaceable) {
+			if (rayHit.collider.gameObject.GetComponent<Block>().structureType == structureType.Interior) {
+				if (_selectedBlock.GetComponent<Block>().blockType == blockType.Component) {
 					var newBlock = (GameObject) Instantiate(selBlock, placePos, placeRot);
 					newBlock.transform.parent = playerSpaceship.transform;
 				}
@@ -169,7 +169,7 @@ public class BuildModeController: MonoBehaviour {
 		}
 		// If mouse ray doesn't collide with a block
 		else {
-			if (!_selectedBlock.GetComponent<Block>().isPlaceable) {
+			if (_selectedBlock.GetComponent<Block>().blockType != blockType.Component) {
 				var newBlock = (GameObject) Instantiate(selBlock, placePos, placeRot);
 				newBlock.transform.parent = playerSpaceship.transform;
 			}
