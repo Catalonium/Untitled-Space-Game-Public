@@ -21,6 +21,15 @@ public class BuildModeController: MonoBehaviour {
 	private bool moveBlock;
 
 	void Start() {
+		// Check for existing playerSpaceship
+		if (GameObject.FindWithTag("Player")) {
+			Destroy(GameObject.FindWithTag("State-Constructing"));
+			playerSpaceship = GameObject.FindWithTag("Player");
+			playerSpaceship.transform.position = new Vector3(0,0,0);
+			playerSpaceship.transform.rotation = new Quaternion(0,0,0,0);
+			playerSpaceship.GetComponent<SpaceshipPhysics>().enabled = false;
+		}
+
 		// Selected block initialization
 		_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
 
@@ -194,6 +203,8 @@ public class BuildModeController: MonoBehaviour {
 	}
 
 	public void ChangeScene(string level) {
+		DontDestroyOnLoad(playerSpaceship);
+		playerSpaceship.tag = "Player";
 		SceneManager.LoadScene(level);
 	}
 
