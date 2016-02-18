@@ -1,6 +1,7 @@
-﻿using System;
-using System.Net.Sockets;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections;
+using UnityEngine.SceneManagement;
+
 //using System.Collections;
 //using JetBrains.Annotations;
 //using UnityEngine.UI;
@@ -12,22 +13,22 @@ using UnityEngine;
 public class BuildModeController: MonoBehaviour {
 
 	public GameObject cursorBlock, playerSpaceship; // Initialization prefabs
-	private GameObject _cursorBlockRef, _movedBlockRef, _selectedBlock; // 
+	private GameObject _cursorBlockRef, _movedBlockRef, _selectedBlock;
 	private Ray ray;
 	private RaycastHit rayHit;
 	private Vector3 placementPos, oldPos;
 	private int gridSize = 1;
 	private bool moveBlock;
-	
+
 	void Start() {
 		// Selected block initialization
 		_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
-		
+
 		// Holocursor initialization
 		_cursorBlockRef = (GameObject)Instantiate(cursorBlock, transform.position, transform.rotation);
 		_cursorBlockRef.SetActive(false);
 	}
-	
+
 	void Update() {
 		// Ray position
 		ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -61,25 +62,26 @@ public class BuildModeController: MonoBehaviour {
 
 		// BUILD MODE
 
-			
-			// Disable cursor if it's activated
-//			if (_cursorBlockRef.activeSelf)
-//				_cursorBlockRef.SetActive(false);
-			// Move block toggle
-//			if (Input.GetMouseButtonDown(0)) {
-//				_movedBlockRef = rayHit.collider.gameObject;
-//				oldPos = _movedBlockRef.transform.position;
-//				moveBlock = true;
-//			}
+
+		// Disable cursor if it's activated
+		//			if (_cursorBlockRef.activeSelf)
+		//				_cursorBlockRef.SetActive(false);
+		// Move block toggle
+		//			if (Input.GetMouseButtonDown(0)) {
+		//				_movedBlockRef = rayHit.collider.gameObject;
+		//				oldPos = _movedBlockRef.transform.position;
+		//				moveBlock = true;
+		//			}
 
 
 
 		// Holographic cursor logic
 		if (Physics.Raycast(ray.origin + new Vector3(0, 0, -1), ray.direction, out rayHit, 10f) ||
-		    Physics.Raycast(ray.origin + new Vector3(0, 0, 1), ray.direction, out rayHit, 10f) ||
-		    Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 10f) ||
-		    Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 10f) ||
-		    playerSpaceship.GetComponentsInChildren<Block>().Length == 0) {
+			Physics.Raycast(ray.origin + new Vector3(0, 0, 1), ray.direction, out rayHit, 10f) ||
+			Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 10f) ||
+			Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 10f) ||
+			Physics.Raycast(ray.origin + new Vector3(0, 0, 0), ray.direction, out rayHit, 10f) ||
+			playerSpaceship.GetComponentsInChildren<Block>().Length == 0) {
 
 			// Activate cursor if it's disabled
 			if (!_cursorBlockRef.activeSelf) {
@@ -98,17 +100,24 @@ public class BuildModeController: MonoBehaviour {
 			}
 
 		}
-		else _cursorBlockRef.SetActive(false);
+		else
+			_cursorBlockRef.SetActive(false);
 
 
 
 		// Hotkeys for block selection
-		if (Input.GetKeyDown("1")) BlockSelection(1);
-		if (Input.GetKeyDown("2")) BlockSelection(2);
-		if (Input.GetKeyDown("3")) BlockSelection(3);
-		if (Input.GetKeyDown("4")) BlockSelection(4);
-		if (Input.GetKeyDown("5")) BlockSelection(5);
-		if (Input.GetKeyDown("6")) BlockSelection(6);
+		if (Input.GetKeyDown("1"))
+			BlockSelection(1);
+		if (Input.GetKeyDown("2"))
+			BlockSelection(2);
+		if (Input.GetKeyDown("3"))
+			BlockSelection(3);
+		if (Input.GetKeyDown("4"))
+			BlockSelection(4);
+		if (Input.GetKeyDown("5"))
+			BlockSelection(5);
+		if (Input.GetKeyDown("6"))
+			BlockSelection(6);
 	}
 
 	void LateUpdate() {
@@ -134,6 +143,33 @@ public class BuildModeController: MonoBehaviour {
 
 	}
 
+	public void PlaceBlock(GameObject selBlock, Vector3 placePos, Quaternion placeRot, Ray ray) {
+		// If mouse ray collides with a block
+		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
+			if (rayHit.collider.gameObject.GetComponent<Block>().structureType == StructureType.Interior) {
+				if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Component) {
+					var newBlock = (GameObject)Instantiate(selBlock, placePos, placeRot);
+					newBlock.transform.parent = playerSpaceship.transform;
+				}
+			}
+		}
+		// If mouse ray doesn't collide with a block
+		else {
+			if (_selectedBlock.GetComponent<Block>().blockType != BlockType.Component) {
+				var newBlock = (GameObject)Instantiate(selBlock, placePos, placeRot);
+				newBlock.transform.parent = playerSpaceship.transform;
+			}
+		}
+	}
+
+	public void DeleteBlock(Ray ray) {
+		// If mouse ray collides with a block
+		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
+			// Delete block
+			Destroy(rayHit.collider.gameObject);
+		}
+	}
+
 	public void BlockSelection(int i) {
 		switch (i) {
 			case 1:
@@ -157,31 +193,8 @@ public class BuildModeController: MonoBehaviour {
 		}
 	}
 
-	public void PlaceBlock(GameObject selBlock, Vector3 placePos, Quaternion placeRot, Ray ray) {
-		// If mouse ray collides with a block
-		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
-			if (rayHit.collider.gameObject.GetComponent<Block>().structureType == structureType.Interior) {
-				if (_selectedBlock.GetComponent<Block>().blockType == blockType.Component) {
-					var newBlock = (GameObject) Instantiate(selBlock, placePos, placeRot);
-					newBlock.transform.parent = playerSpaceship.transform;
-				}
-			}
-		}
-		// If mouse ray doesn't collide with a block
-		else {
-			if (_selectedBlock.GetComponent<Block>().blockType != blockType.Component) {
-				var newBlock = (GameObject) Instantiate(selBlock, placePos, placeRot);
-				newBlock.transform.parent = playerSpaceship.transform;
-			}
-		}
-	}
-
-	public void DeleteBlock(Ray ray) {
-		// If mouse ray collides with a block
-		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
-			// Delete block
-			Destroy(rayHit.collider.gameObject);
-		}
+	public void ChangeScene(string level) {
+		SceneManager.LoadScene(level);
 	}
 
 }

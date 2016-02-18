@@ -9,13 +9,13 @@ public class SpaceshipPhysics : MonoBehaviour {
 	private float vel, man;
 
 	// Use this for initialization
-	void Start () {
+	void Start() {
 		s = gameObject;
 		sStats = s.GetComponent<SpaceshipStats>();
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update() {
 		GameObject.Find("GUIText1").GetComponent<Text>().text = Math.Round(vel, 4).ToString();
 	}
 
