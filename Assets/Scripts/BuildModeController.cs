@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 //using System.Collections;
 //using JetBrains.Annotations;
@@ -178,6 +179,24 @@ public class BuildModeController: MonoBehaviour {
 			Destroy(rayHit.collider.gameObject);
 		}
 	}
+
+//	!!! Warning: POSTPONED for Beta stage
+//
+//	public void GridIntegrityCheck() {
+//
+//		Block[] blocks = GameObject.Find("Spaceship").GetComponentsInChildren<Block>();
+//		
+//		foreach (Block b in blocks) {
+//			if (Physics.Raycast(b.gameObject.transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 10f) ||
+//			    Physics.Raycast(b.gameObject.transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 10f) ||
+//			    Physics.Raycast(b.gameObject.transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 10f) ||
+//			    Physics.Raycast(b.gameObject.transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 10f)) {
+//				GameObject.Find("ModeButton").GetComponent<Button>().interactable = true;
+//			}
+//			else GameObject.Find("ModeButton").GetComponent<Button>().interactable = false;
+//		}
+//
+//	}
 
 	public void BlockSelection(int i) {
 		switch (i) {
