@@ -28,7 +28,7 @@ public class SpaceshipStats : MonoBehaviour {
 
 		foreach (Block b in blocks) {
 			Hull += b.hull;
-			Mass += b.mass;  rb.mass = Mass;
+			Mass += b.hull / 2; rb.mass = Mass;
 			EnergyGen += b.energyGen;
 			EnergyCon += b.energyCon;
 			Maneuver += b.maneuver;
