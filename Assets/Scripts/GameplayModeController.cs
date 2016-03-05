@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using UnityEngine.SceneManagement;
 
 public class GameplayModeController : MonoBehaviour {
@@ -8,9 +7,19 @@ public class GameplayModeController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		playerSpaceship = GameObject.FindWithTag("Player");
+		var construction = GameObject.FindWithTag("Spaceship/Construction");
+		var grids = GameObject.FindWithTag("Spaceship/Grids");
+
+		var spaceshipPrefab = (GameObject)Resources.Load("Prefabs/Player/Spaceship", typeof(GameObject));
+		playerSpaceship = (GameObject)Instantiate(spaceshipPrefab, construction.GetComponent<Rigidbody>().centerOfMass, Quaternion.Euler(Vector3.zero));
+		playerSpaceship.name = "Spaceship";
+		grids.transform.parent = playerSpaceship.transform;
+
+		Destroy(construction);
+		
+		playerSpaceship.transform.position = Vector3.zero;
 		playerSpaceship.GetComponent<SpaceshipPhysics>().enabled = true;
-		playerSpaceship.transform.position = -playerSpaceship.GetComponent<Rigidbody>().centerOfMass;
+//		playerSpaceship.transform.position = -playerSpaceship.GetComponent<Rigidbody>().centerOfMass;
 	}
 
 	// Update is called once per frame

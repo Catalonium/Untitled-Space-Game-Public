@@ -1,20 +1,20 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class SpaceshipStats : MonoBehaviour {
 
 	public float Hull, Mass, EnergyGen, EnergyCon, Maneuver, Thrust;
-	private Block[] blocks;
 	private Rigidbody rb;
+	private Block[] blocks;
+	private GameObject grids;
 
 	void Start() {
-		blocks = GetComponentsInChildren<Block>();
 		rb = GetComponent<Rigidbody>();
+		grids = GameObject.FindWithTag("Spaceship/Grids");
 		StatCalc();
 	}
 
 	private void Update() {
-		if (blocks.Length != GetComponentsInChildren<Block>().Length)
+		if (blocks.Length != grids.GetComponentsInChildren<Block>().Length)
 			StatCalc();
 	}
 
@@ -24,7 +24,7 @@ public class SpaceshipStats : MonoBehaviour {
 		Hull = 0;		Mass = 0;		EnergyGen = 0;
 		EnergyCon = 0;	Maneuver = 0;	Thrust = 0;
 
-		blocks = GetComponentsInChildren<Block>();
+		blocks = grids.GetComponentsInChildren<Block>();
 
 		foreach (Block b in blocks) {
 			Hull += b.hull;

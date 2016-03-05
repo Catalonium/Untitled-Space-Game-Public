@@ -1,20 +1,13 @@
 ﻿using UnityEngine;
-using System.Collections;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-
-//using System.Collections;
-//using JetBrains.Annotations;
-//using UnityEngine.UI;
-
 
 //	TODO: Clean-up the code
 //	Author: Adnan Bulut Catikoglu - 2016
 
 public class BuildModeController: MonoBehaviour {
 
-	public GameObject cursorBlock, playerSpaceship; // Initialization prefabs
-	private GameObject _cursorBlockRef, _movedBlockRef, _selectedBlock;
+	private GameObject playerSpaceship; // Initialization prefabs
+	private GameObject _cursorBlock, _selectedBlock;
 	private Ray ray;
 	private RaycastHit rayHit;
 	private Vector3 placementPos, oldPos;
@@ -22,21 +15,38 @@ public class BuildModeController: MonoBehaviour {
 	private bool moveBlock;
 
 	void Start() {
-		// Check for existing playerSpaceship
-		if (GameObject.FindWithTag("Player")) {
-			Destroy(GameObject.FindWithTag("State-Constructing"));
-			playerSpaceship = GameObject.FindWithTag("Player");
-			playerSpaceship.transform.position = new Vector3(0,0,0);
-			playerSpaceship.transform.rotation = new Quaternion(0,0,0,0);
+		// Check for existing Spaceship/Player
+		if (GameObject.FindWithTag("Spaceship/Player")) {
+			playerSpaceship = GameObject.FindWithTag("Spaceship/Player");
+			playerSpaceship.name = "Construction";
+			playerSpaceship.tag = "Spaceship/Construction";
+
+			// disables physics script
 			playerSpaceship.GetComponent<SpaceshipPhysics>().enabled = false;
+			// zeroes movement velocities
+			playerSpaceship.GetComponent<Rigidbody>().velocity = Vector3.zero;
+			playerSpaceship.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+			// spaceship position reset
+			playerSpaceship.transform.position = Vector3.zero;
+			playerSpaceship.transform.rotation = Quaternion.Euler(Vector3.zero);
+			// grids position reset
+			playerSpaceship.transform.Find("Grids").transform.position = Vector3.zero;
+			playerSpaceship.transform.Find("Grids").transform.rotation = Quaternion.Euler(Vector3.zero);
+		}
+		// If Spaceship/Player is not found in the scene, create Spaceship/Construction
+		else {
+			var constructionPrefab = (GameObject)Resources.Load("Prefabs/Player/Construction", typeof(GameObject));
+			playerSpaceship = (GameObject)Instantiate(constructionPrefab, transform.position, transform.rotation);
+			playerSpaceship.name = "Construction";
 		}
 
 		// Selected block initialization
 		_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
 
 		// Holocursor initialization
-		_cursorBlockRef = (GameObject)Instantiate(cursorBlock, transform.position, transform.rotation);
-		_cursorBlockRef.SetActive(false);
+		var holoBlock = (GameObject)Resources.Load("Prefabs/Holo/Placeholder-Holo", typeof(GameObject));
+		_cursorBlock = (GameObject)Instantiate(holoBlock, transform.position, transform.rotation);
+		_cursorBlock.SetActive(false);
 	}
 
 	void Update() {
@@ -45,7 +55,7 @@ public class BuildModeController: MonoBehaviour {
 		// Mouse pointer position (block placement)
 		placementPos = new Vector3(Mathf.Round(ray.origin.x) * gridSize, _selectedBlock.transform.position.y, Mathf.Round(ray.origin.z) * gridSize);
 		// Mouse cursor position offset
-		_cursorBlockRef.transform.position = placementPos + new Vector3(0, 5, 0);
+		_cursorBlock.transform.position = placementPos + new Vector3(0, 5, 0);
 
 		/* GITHUB ISSUE SOLUTION #10: Movement Disabled
 
@@ -74,8 +84,8 @@ public class BuildModeController: MonoBehaviour {
 
 
 		// Disable cursor if it's activated
-		//			if (_cursorBlockRef.activeSelf)
-		//				_cursorBlockRef.SetActive(false);
+		//			if (_cursorBlock.activeSelf)
+		//				_cursorBlock.SetActive(false);
 		// Move block toggle
 		//			if (Input.GetMouseButtonDown(0)) {
 		//				_movedBlockRef = rayHit.collider.gameObject;
@@ -94,8 +104,8 @@ public class BuildModeController: MonoBehaviour {
 			playerSpaceship.GetComponentsInChildren<Block>().Length == 0) {
 
 			// Activate cursor if it's disabled
-			if (!_cursorBlockRef.activeSelf) {
-				_cursorBlockRef.SetActive(true);
+			if (!_cursorBlock.activeSelf) {
+				_cursorBlock.SetActive(true);
 			}
 
 			// Place block
@@ -111,7 +121,7 @@ public class BuildModeController: MonoBehaviour {
 
 		}
 		else
-			_cursorBlockRef.SetActive(false);
+			_cursorBlock.SetActive(false);
 
 
 
@@ -128,6 +138,7 @@ public class BuildModeController: MonoBehaviour {
 			BlockSelection(5);
 		if (Input.GetKeyDown("6"))
 			BlockSelection(6);
+
 	}
 
 	void LateUpdate() {
@@ -159,7 +170,7 @@ public class BuildModeController: MonoBehaviour {
 			if (rayHit.collider.gameObject.GetComponent<Block>().structureType == StructureType.Interior) {
 				if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Component) {
 					var newBlock = (GameObject)Instantiate(selBlock, placePos, placeRot);
-					newBlock.transform.parent = playerSpaceship.transform;
+					newBlock.transform.parent = GameObject.FindWithTag("Spaceship/Grids").transform;
 				}
 			}
 		}
@@ -167,7 +178,7 @@ public class BuildModeController: MonoBehaviour {
 		else {
 			if (_selectedBlock.GetComponent<Block>().blockType != BlockType.Component) {
 				var newBlock = (GameObject)Instantiate(selBlock, placePos, placeRot);
-				newBlock.transform.parent = playerSpaceship.transform;
+				newBlock.transform.parent = GameObject.FindWithTag("Spaceship/Grids").transform;
 			}
 		}
 	}
@@ -223,8 +234,15 @@ public class BuildModeController: MonoBehaviour {
 
 	public void ChangeScene(string level) {
 		DontDestroyOnLoad(playerSpaceship);
-		playerSpaceship.tag = "Player";
 		SceneManager.LoadScene(level);
+	}
+
+	public void SaveShip() {
+
+	}
+
+	public void LoadShip() {
+
 	}
 
 }

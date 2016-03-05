@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System;
 
 public class SpaceshipPhysics : MonoBehaviour {
 
@@ -25,9 +24,12 @@ public class SpaceshipPhysics : MonoBehaviour {
 
 		// Maneuver
 		{
-			rb.AddRelativeTorque(0, 100f * sStats.Maneuver * Input.GetAxis("Horizontal"), 0);
+			// Rotation formula
+			rb.AddTorque(0, 100f * sStats.Maneuver * Input.GetAxis("Horizontal"), 0);
+			// Rotation constraint freeze
+			transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
 		}
-		
+
 
 		// Thrust
 		{
@@ -42,8 +44,12 @@ public class SpaceshipPhysics : MonoBehaviour {
 					vel = 0;
 				}
 			}
+			// Movement formula
 			rb.AddRelativeForce(new Vector3(0, 0, vel), ForceMode.Force);
+			// Position constraint freeze
+			transform.position = new Vector3(transform.position.x, 0, transform.position.z);
 		}
+
 
 	}
 }
