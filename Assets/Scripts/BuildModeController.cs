@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 //	TODO: Clean-up the code
@@ -101,7 +104,7 @@ public class BuildModeController: MonoBehaviour {
 			Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 10f) ||
 			Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 10f) ||
 			Physics.Raycast(ray.origin + new Vector3(0, 0, 0), ray.direction, out rayHit, 10f) ||
-			playerSpaceship.GetComponentsInChildren<Block>().Length == 0) {
+			playerSpaceship.transform.Find("Grids").GetComponentsInChildren<Block>().Length == 0) {
 
 			// Activate cursor if it's disabled
 			if (!_cursorBlock.activeSelf) {
@@ -120,8 +123,7 @@ public class BuildModeController: MonoBehaviour {
 			}
 
 		}
-		else
-			_cursorBlock.SetActive(false);
+		else _cursorBlock.SetActive(false);
 
 
 
@@ -186,28 +188,95 @@ public class BuildModeController: MonoBehaviour {
 	public void DeleteBlock(Ray ray) {
 		// If mouse ray collides with a block
 		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
-			// Delete block
-			Destroy(rayHit.collider.gameObject);
+
+			var blockToDel = rayHit.collider.gameObject;
+
+			if (blockToDel.GetComponent<Block>().blockType == BlockType.Structure) {
+				// Grid seperation check
+				if (GridIntegrityCheck(blockToDel)) {
+					// Delete block
+					Destroy(blockToDel);
+				}
+				else {
+					// Can't delete block
+					Debug.LogError("Can't delete block - grid seperation detected.");
+				}
+			}
+			else if (blockToDel.GetComponent<Block>().blockType == BlockType.Component) {
+				Destroy(blockToDel);
+			}
 		}
 	}
+	
+	public bool GridIntegrityCheck(GameObject block) {
 
-//	!!! Warning: POSTPONED for Beta stage
-//
-//	public void GridIntegrityCheck() {
-//
-//		Block[] blocks = GameObject.Find("Spaceship").GetComponentsInChildren<Block>();
-//		
-//		foreach (Block b in blocks) {
-//			if (Physics.Raycast(b.gameObject.transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 10f) ||
-//			    Physics.Raycast(b.gameObject.transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 10f) ||
-//			    Physics.Raycast(b.gameObject.transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 10f) ||
-//			    Physics.Raycast(b.gameObject.transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 10f)) {
-//				GameObject.Find("ModeButton").GetComponent<Button>().interactable = true;
-//			}
-//			else GameObject.Find("ModeButton").GetComponent<Button>().interactable = false;
-//		}
-//
-//	}
+		bool result = true;
+		
+		List<GameObject> adjacentGrids = new List<GameObject>();
+		List<GameObject> tempArray = new List<GameObject>();
+		Collider[] mainArray = GameObject.FindWithTag("Spaceship/Grids").GetComponentsInChildren<Collider>();
+
+//		tempArray.Add(block.transform.gameObject);
+
+		// Starting block adjacent grids check
+		if (Physics.Raycast(block.transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 15f)) {
+			adjacentGrids.Add(rayHit.collider.gameObject);
+		}
+		if (Physics.Raycast(block.transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 15f)) {
+			adjacentGrids.Add(rayHit.collider.gameObject);
+		}
+		if (Physics.Raycast(block.transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 15f)) {
+			adjacentGrids.Add(rayHit.collider.gameObject);
+		}
+		if (Physics.Raycast(block.transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 15f)) {
+			adjacentGrids.Add(rayHit.collider.gameObject);
+		}
+
+		block.GetComponent<Collider>().enabled = false;
+
+		// If there is at least 1 adjacent grid
+		if (adjacentGrids.Count > 0) {
+			
+			tempArray.Add(adjacentGrids[0]);
+
+			for (int i = 0; i < tempArray.Count; i++) {
+
+				if (Physics.Raycast(tempArray[i].gameObject.transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 15f)) {
+					tempArray.Add(rayHit.collider.gameObject);
+				}
+				if (Physics.Raycast(tempArray[i].gameObject.transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 15f)) {
+					tempArray.Add(rayHit.collider.gameObject);
+				}
+				if (Physics.Raycast(tempArray[i].gameObject.transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 15f)) {
+					tempArray.Add(rayHit.collider.gameObject);
+				}
+				if (Physics.Raycast(tempArray[i].gameObject.transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 15f)) {
+					tempArray.Add(rayHit.collider.gameObject);
+				}
+
+				tempArray[i].GetComponent<Collider>().enabled = false;
+
+			}
+
+			foreach (Collider c in mainArray) {
+				if (!c.enabled) {
+					c.enabled = true;
+				}
+				else if (c.enabled) {
+					result = false;
+				}
+			}
+
+			if (!result) {
+				block.GetComponent<Collider>().enabled = true;
+				return result;
+			}
+
+		}
+
+		return result;
+
+	}
 
 	public void BlockSelection(int i) {
 		switch (i) {
