@@ -6,7 +6,7 @@ public class GameplayModeController : MonoBehaviour {
 	private GameObject playerSpaceship; // Initialization prefabs
 
 	// Use this for initialization
-	void Start () {
+	void Start() {
 		var construction = GameObject.FindWithTag("Spaceship/Construction");
 		var grids = GameObject.FindWithTag("Spaceship/Grids");
 
@@ -23,13 +23,13 @@ public class GameplayModeController : MonoBehaviour {
 	}
 
 	// Update is called once per frame
-	void Update () {
+	void Update() {
 		Camera.main.transform.position = new Vector3(playerSpaceship.transform.position.x, 10, playerSpaceship.transform.position.z);
 	}
 
-	public void ChangeScene(string level) {
+	public void ChangeScene(string scene) {
 		DontDestroyOnLoad(playerSpaceship);
-		SceneManager.LoadScene(level);
+		SceneManager.LoadScene(scene);
 	}
 
 }

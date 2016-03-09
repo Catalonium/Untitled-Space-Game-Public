@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 //	TODO: Clean-up the code
 //	Author: Adnan Bulut Catikoglu - 2016
 
-public class BuildModeController: MonoBehaviour {
+public class BuildModeController : MonoBehaviour {
 
 	private GameObject playerSpaceship; // Initialization prefabs
 	private GameObject _cursorBlock, _selectedBlock;
@@ -36,11 +36,18 @@ public class BuildModeController: MonoBehaviour {
 			playerSpaceship.transform.Find("Grids").transform.position = Vector3.zero;
 			playerSpaceship.transform.Find("Grids").transform.rotation = Quaternion.Euler(Vector3.zero);
 		}
-		// If Spaceship/Player is not found in the scene, create Spaceship/Construction
+		// Check for existing Spaceship/Construction
+		else if (GameObject.FindWithTag("Spaceship/Construction")) {
+			// gets the ship in construction if it exists
+			playerSpaceship = GameObject.FindWithTag("Spaceship/Construction");
+		}
+		// If Spaceship/Player or Spaceship/Construction is not found in the scene, create Spaceship/Construction
 		else {
+			// creates a new construction
 			var constructionPrefab = (GameObject)Resources.Load("Prefabs/Player/Construction", typeof(GameObject));
 			playerSpaceship = (GameObject)Instantiate(constructionPrefab, transform.position, transform.rotation);
-			playerSpaceship.name = "Construction";
+			// required because name is set to "... (Clone)" due to instantiation
+			playerSpaceship.name = "Construction"; 
 		}
 
 		// Selected block initialization
@@ -277,9 +284,33 @@ public class BuildModeController: MonoBehaviour {
 		return result;
 
 	}
+	public void SaveShip() {
+
+		GameObject grids = GameObject.FindWithTag("Spaceship/Grids");
+		Block[] blocks = grids.GetComponentsInChildren<Block>();
+
+		List<string> lines = new List<string>();
+
+		foreach (Block b in blocks) {
+			// Example #1: Write an array of strings to a file.
+			// Create a string array that consists of three lines.
+			lines.Add("<" + b.blockType.ToString().ToLower() + ">");
+			lines.Add(b.brandName);
+			lines.Add(b.modelName);
+			lines.Add(b.gameObject.transform.position.ToString());
+			lines.Add("</" + b.blockType.ToString().ToLower() + ">\n");
+		}
+		// WriteAllLines creates a file, writes a collection of strings to the file,
+		// and then closes the file.  You do NOT need to call Flush() or Close().
+		System.IO.File.WriteAllLines(Application.dataPath + "/ship1.xml", lines.ToArray());
+	}
+
+	public void LoadShip() {
+
+	}
 
 	public void BlockSelection(int i) {
-		switch (i) {
+		switch(i) {
 			case 1:
 				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
 				break;
@@ -301,17 +332,9 @@ public class BuildModeController: MonoBehaviour {
 		}
 	}
 
-	public void ChangeScene(string level) {
+	public void ChangeScene(string scene) {
 		DontDestroyOnLoad(playerSpaceship);
-		SceneManager.LoadScene(level);
-	}
-
-	public void SaveShip() {
-
-	}
-
-	public void LoadShip() {
-
+		SceneManager.LoadScene(scene);
 	}
 
 }

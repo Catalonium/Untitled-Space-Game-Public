@@ -27,6 +27,8 @@ public class BlockEditor : Editor {
 //						EditorGUI.indentLevel--;
 //					}
 
+					block.brandName = EditorGUILayout.TextField("Brand Name", block.brandName);
+					block.modelName = EditorGUILayout.TextField("Model Name", block.modelName);
 					block.hull = EditorGUILayout.FloatField("Hull", block.hull);
 					block.mass = EditorGUILayout.FloatField("Mass", block.mass);
 					block.energyGen = EditorGUILayout.FloatField("Energy Output", block.energyGen);
@@ -52,6 +54,8 @@ public class BlockEditor : Editor {
 //						EditorGUI.indentLevel--;
 //					}
 
+					block.brandName = EditorGUILayout.TextField("Brand Name", block.brandName);
+					block.modelName = EditorGUILayout.TextField("Model Name", block.modelName);
 					block.hull = EditorGUILayout.FloatField("Hull", block.hull);
 					block.mass = EditorGUILayout.FloatField("Mass", block.mass);
 					block.energyGen = EditorGUILayout.FloatField("Energy Output", block.energyGen);
