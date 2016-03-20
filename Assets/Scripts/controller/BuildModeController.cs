@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 //	TODO: Clean-up the code
 //	Author: Adnan Bulut Catikoglu - 2016
