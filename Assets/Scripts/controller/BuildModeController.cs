@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 //	TODO: Clean-up the code
 //	Author: Adnan Bulut Catikoglu - 2016
@@ -283,8 +282,8 @@ public class BuildModeController : MonoBehaviour {
 		}
 
 		return result;
-
 	}
+
 	public void SaveShip() {
 
 		GameObject grids = GameObject.FindWithTag("Spaceship/Grids");
@@ -298,15 +297,66 @@ public class BuildModeController : MonoBehaviour {
 			lines.Add("<" + b.blockType.ToString().ToLower() + ">");
 			lines.Add(b.brandName);
 			lines.Add(b.modelName);
-			lines.Add(b.gameObject.transform.position.ToString());
-			lines.Add("</" + b.blockType.ToString().ToLower() + ">\n");
+			lines.Add(b.gameObject.transform.position.x.ToString());
+			lines.Add(b.gameObject.transform.position.y.ToString());
+			lines.Add(b.gameObject.transform.position.z.ToString());
+			lines.Add("");	// for blocks seperation
 		}
 		// WriteAllLines creates a file, writes a collection of strings to the file,
 		// and then closes the file.  You do NOT need to call Flush() or Close().
-		System.IO.File.WriteAllLines(Application.dataPath + "/ship1.xml", lines.ToArray());
+		File.WriteAllLines(Application.dataPath + "/spaceship.save", lines.ToArray());
+//		File.WriteAllLines("C:/Users/Cloud/Desktop/ship1.save", lines.ToArray());
 	}
 
 	public void LoadShip() {
+
+		if (File.Exists(Application.dataPath + "/spaceship.save")) {
+//		if (File.Exists(@"C:\Users\Cloud\Desktop\ship1.save")) {
+
+			var file = File.OpenRead(Application.dataPath + "/spaceship.save");
+//			var file = File.OpenRead(@"C:\Users\Cloud\Desktop\ship1.save");
+			StreamReader reader = new StreamReader(file);
+
+			GameObject[] buildingBlocks = Resources.LoadAll<GameObject>("Prefabs/Building Blocks");
+
+			// delete existing blocks-grids
+			GameObject[] blocksToDelete = GameObject.FindGameObjectsWithTag("Spaceship/Block");
+			foreach (GameObject target in blocksToDelete) {
+				Destroy(target);
+			}
+
+			while (!reader.EndOfStream) {
+
+				string line_Type = reader.ReadLine(); // type of block (tag in xml file)
+				string line_Brand = reader.ReadLine(); // brand of block
+				string line_Model = reader.ReadLine(); // model of block
+				float line_xPos = float.Parse(reader.ReadLine()); // transform.x of block
+				float line_yPos = float.Parse(reader.ReadLine()); // transform.y of block
+				float line_zPos = float.Parse(reader.ReadLine()); // transform.z of block
+				reader.ReadLine(); // empty line (for visual seperation in save file)
+
+				line_Type = line_Type.Substring(1, 9); // tag chars removal
+
+				foreach (GameObject go in buildingBlocks) {
+					if (go.GetComponent<Block>().brandName == line_Brand && go.GetComponent<Block>().modelName == line_Model) {
+						if (line_Type == go.GetComponent<Block>().blockType.ToString().ToLower()) {
+
+							Vector3 line_Position = new Vector3(line_xPos, line_yPos, line_zPos);
+
+							var newBlock = (GameObject)Instantiate(go, line_Position, transform.rotation);
+							newBlock.transform.parent = GameObject.FindWithTag("Spaceship/Grids").transform;
+
+							break;
+						}
+					}
+				}
+
+			}
+
+			reader.Close();
+
+		}
+		else Debug.LogError("No save file exists.");
 
 	}
 
