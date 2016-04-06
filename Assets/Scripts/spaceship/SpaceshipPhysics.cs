@@ -4,13 +4,13 @@ using UnityEngine.UI;
 public class SpaceshipPhysics : MonoBehaviour {
 
 	private Rigidbody rb;
-	private SpaceshipStats sStats;
-	private float vel, man;
+	private SpaceshipStats spaceshipStats;
+	private float vel, man, eff;
 
 	// Use this for initialization
 	void Start() {
 		rb = GetComponent<Rigidbody>();
-		sStats = rb.GetComponent<SpaceshipStats>();
+		spaceshipStats = rb.GetComponent<SpaceshipStats>();
 	}
 	
 	// Update is called once per frame
@@ -18,14 +18,23 @@ public class SpaceshipPhysics : MonoBehaviour {
 		GameObject.Find("GUIText1").GetComponent<Text>().text = "Thrust: " + vel;
 		GameObject.Find("GUIText2").GetComponent<Text>().text = "Velocity: " + rb.velocity.magnitude;
 		GameObject.Find("GUIText3").GetComponent<Text>().text = rb.angularDrag.ToString();
+//		GameObject.Find("GUIText4").GetComponent<Text>().text = "Efficiency ratio: " + eff;
 	}
 
 	void FixedUpdate() {
 
+		// Energy efficiency calculation
+		{
+			if (spaceshipStats.EnergyCon > spaceshipStats.EnergyGen)
+				eff = (spaceshipStats.EnergyGen / spaceshipStats.EnergyCon) * 0.5f;
+			else eff = 1;
+		}
+
+
 		// Maneuver
 		{
 			// Rotation formula
-			rb.AddTorque(0, 100f * sStats.Maneuver * Input.GetAxis("Horizontal"), 0);
+			rb.AddTorque(0, 100f * (spaceshipStats.Maneuver * eff) * Input.GetAxis("Horizontal"), 0);
 			// Rotation constraint freeze
 			transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
 		}
@@ -34,10 +43,10 @@ public class SpaceshipPhysics : MonoBehaviour {
 		// Thrust
 		{
 			if (Input.GetAxisRaw("Vertical") > 0) {
-				vel += sStats.Thrust * Input.GetAxis("Vertical");
+				vel += (spaceshipStats.Thrust * eff) * Input.GetAxis("Vertical");
 			}
 			else if (Input.GetAxisRaw("Vertical") < 0) {
-				vel -= sStats.Thrust * -Input.GetAxis("Vertical");
+				vel -= (spaceshipStats.Thrust * eff) * -Input.GetAxis("Vertical");
 			}
 			else if (Input.GetAxisRaw("Vertical") == 0) {
 				if (Mathf.Abs(vel) < 100f) {
