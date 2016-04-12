@@ -11,7 +11,7 @@ public class FX_ThrusterFlame : MonoBehaviour {
 			sp = GameObject.FindGameObjectWithTag("Spaceship/Player").GetComponent<SpaceshipPhysics>();
 			em = GetComponent<ParticleSystem>().emission;
 
-			em.enabled = sp.thrust_IsActive;
+			em.enabled = sp.thrustIsActive;
 		}
 		else em.enabled = false;
 	}

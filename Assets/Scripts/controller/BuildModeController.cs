@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 
 public class BuildModeController : MonoBehaviour {
 
-	private GameObject playerSpaceship; // Initialization prefabs
+	private GameObject playerSpaceship, playerSpaceship_Grid; // spaceship
 	private GameObject _cursorBlock, _selectedBlock;
 	private Ray ray;
 	private RaycastHit rayHit;
@@ -18,9 +18,12 @@ public class BuildModeController : MonoBehaviour {
 	private bool moveBlock;
 
 	void Start() {
-		// Check for existing Spaceship/Player
-		if (GameObject.FindWithTag("Spaceship/Player")) {
+		// Get Spaceship/Player to cache if it exists
+		if (GameObject.FindWithTag("Spaceship/Player"))
 			playerSpaceship = GameObject.FindWithTag("Spaceship/Player");
+
+		// Check for existing Spaceship/Player
+		if (playerSpaceship != null) {
 			playerSpaceship.name = "Construction";
 			playerSpaceship.tag = "Spaceship/Construction";
 
@@ -36,18 +39,29 @@ public class BuildModeController : MonoBehaviour {
 			playerSpaceship.transform.Find("Grids").transform.position = Vector3.zero;
 			playerSpaceship.transform.Find("Grids").transform.rotation = Quaternion.Euler(Vector3.zero);
 		}
-		// Check for existing Spaceship/Construction
-		else if (GameObject.FindWithTag("Spaceship/Construction")) {
-			// gets the ship in construction if it exists
-			playerSpaceship = GameObject.FindWithTag("Spaceship/Construction");
-		}
+
+//		// Check for existing Spaceship/Construction
+//		else if (GameObject.FindWithTag("Spaceship/Construction")) {
+//			// gets the ship in construction if it exists
+//			playerSpaceship = GameObject.FindWithTag("Spaceship/Construction");
+//		}
+
 		// If Spaceship/Player or Spaceship/Construction is not found in the scene, create Spaceship/Construction
 		else {
 			// creates a new construction
 			var constructionPrefab = (GameObject)Resources.Load("Prefabs/Player/Construction", typeof(GameObject));
 			playerSpaceship = (GameObject)Instantiate(constructionPrefab, transform.position, transform.rotation);
 			// required because name is set to "... (Clone)" due to instantiation
-			playerSpaceship.name = "Construction"; 
+			playerSpaceship.name = "Construction";
+		}
+
+		// Get Spaceship/Grid to cache
+		playerSpaceship_Grid = playerSpaceship.transform.Find("Grids").gameObject;
+
+		// COLLIDER TRIGGER SWITCH
+		BoxCollider[] blockColliders = playerSpaceship_Grid.GetComponentsInChildren<BoxCollider>();
+		foreach (BoxCollider bc in blockColliders) {
+			bc.isTrigger = true;
 		}
 
 		// Selected block initialization
@@ -105,13 +119,13 @@ public class BuildModeController : MonoBehaviour {
 
 
 
-		// Holographic cursor logic
-		if (Physics.Raycast(ray.origin + new Vector3(0, 0, -1), ray.direction, out rayHit, 10f) ||
-			Physics.Raycast(ray.origin + new Vector3(0, 0, 1), ray.direction, out rayHit, 10f) ||
-			Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 10f) ||
-			Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 10f) ||
-			Physics.Raycast(ray.origin + new Vector3(0, 0, 0), ray.direction, out rayHit, 10f) ||
-			playerSpaceship.transform.Find("Grids").GetComponentsInChildren<Block>().Length == 0) {
+		// Holographic cursor block logic
+		if (Physics.Raycast(ray.origin + new Vector3(0, 0, -1), ray.direction, out rayHit, 15) ||
+			Physics.Raycast(ray.origin + new Vector3(0, 0, 1), ray.direction, out rayHit, 15) ||
+			Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 15) ||
+			Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 15) ||
+			Physics.Raycast(ray.origin + new Vector3(0, 0, 0), ray.direction, out rayHit, 15) ||
+			playerSpaceship_Grid.GetComponentsInChildren<Block>().Length == 0) {
 
 			// Activate cursor if it's disabled
 			if (!_cursorBlock.activeSelf) {
@@ -175,11 +189,11 @@ public class BuildModeController : MonoBehaviour {
 
 	public void PlaceBlock(GameObject selBlock, Vector3 placePos, Quaternion placeRot, Ray ray) {
 		// If mouse ray collides with a block
-		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
+		if (Physics.Raycast(ray.origin, ray.direction, out rayHit, 15)) {
 			if (rayHit.collider.gameObject.GetComponent<Block>().structureType == StructureType.Interior) {
 				if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Component) {
 					var newBlock = (GameObject)Instantiate(selBlock, placePos, placeRot);
-					newBlock.transform.parent = GameObject.FindWithTag("Spaceship/Grids").transform;
+					newBlock.transform.parent = playerSpaceship_Grid.transform;
 				}
 			}
 		}
@@ -187,14 +201,14 @@ public class BuildModeController : MonoBehaviour {
 		else {
 			if (_selectedBlock.GetComponent<Block>().blockType != BlockType.Component) {
 				var newBlock = (GameObject)Instantiate(selBlock, placePos, placeRot);
-				newBlock.transform.parent = GameObject.FindWithTag("Spaceship/Grids").transform;
+				newBlock.transform.parent = playerSpaceship_Grid.transform;
 			}
 		}
 	}
 
 	public void DeleteBlock(Ray ray) {
 		// If mouse ray collides with a block
-		if (Physics.Raycast(ray.origin + new Vector3(0, -2, 0), ray.direction, out rayHit, 10f)) {
+		if (Physics.Raycast(ray.origin, ray.direction, out rayHit, 15)) {
 
 			var blockToDel = rayHit.collider.gameObject;
 
@@ -220,68 +234,79 @@ public class BuildModeController : MonoBehaviour {
 		bool result = true;
 		
 		List<GameObject> adjacentGrids = new List<GameObject>();
-		List<GameObject> tempArray = new List<GameObject>();
-		Collider[] mainArray = GameObject.FindWithTag("Spaceship/Grids").GetComponentsInChildren<Collider>();
+		Collider[] mainArray = playerSpaceship_Grid.GetComponentsInChildren<Collider>();
 
 //		tempArray.Add(block.transform.gameObject);
 
 		// Starting block adjacent grids check
-		if (Physics.Raycast(block.transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 15f)) {
+		if (Physics.Raycast(block.transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 15)) {
 			adjacentGrids.Add(rayHit.collider.gameObject);
 		}
-		if (Physics.Raycast(block.transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 15f)) {
+		if (Physics.Raycast(block.transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 15)) {
 			adjacentGrids.Add(rayHit.collider.gameObject);
 		}
-		if (Physics.Raycast(block.transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 15f)) {
+		if (Physics.Raycast(block.transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 15)) {
 			adjacentGrids.Add(rayHit.collider.gameObject);
 		}
-		if (Physics.Raycast(block.transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 15f)) {
+		if (Physics.Raycast(block.transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 15)) {
 			adjacentGrids.Add(rayHit.collider.gameObject);
 		}
-
-		block.GetComponent<Collider>().enabled = false;
 
 		// If there is at least 1 adjacent grid
 		if (adjacentGrids.Count > 0) {
-			
-			tempArray.Add(adjacentGrids[0]);
 
-			for (int i = 0; i < tempArray.Count; i++) {
+			// Check adjacent grids one by one, to detect whether the action will seperate grids in any way or not
+			for (int a = 0; a < adjacentGrids.Count; a++) {
 
-				if (Physics.Raycast(tempArray[i].gameObject.transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 15f)) {
-					tempArray.Add(rayHit.collider.gameObject);
-				}
-				if (Physics.Raycast(tempArray[i].gameObject.transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 15f)) {
-					tempArray.Add(rayHit.collider.gameObject);
-				}
-				if (Physics.Raycast(tempArray[i].gameObject.transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 15f)) {
-					tempArray.Add(rayHit.collider.gameObject);
-				}
-				if (Physics.Raycast(tempArray[i].gameObject.transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 15f)) {
-					tempArray.Add(rayHit.collider.gameObject);
+				// create temp neighbour grid list which will reset at every adjacent block iteration
+				List<GameObject> tempGrids = new List<GameObject>();
+				// add first adjacent block as starting point for grid check
+				tempGrids.Add(adjacentGrids[a]);
+				// disable block-to-be-deleted's collider
+				block.GetComponent<Collider>().enabled = false;
+
+				// Check neighbour grids for this adjacent grid
+				for (int i = 0; i < tempGrids.Count; i++) {
+
+					// only check this block's neighbour grids if it hasn't been checked before (via Collider.enabled)
+					if (tempGrids[i].GetComponent<Collider>().enabled) {
+
+						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 15)) {
+							tempGrids.Add(rayHit.collider.gameObject);
+						}
+						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 15)) {
+							tempGrids.Add(rayHit.collider.gameObject);
+						}
+						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 15)) {
+							tempGrids.Add(rayHit.collider.gameObject);
+						}
+						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 15)) {
+							tempGrids.Add(rayHit.collider.gameObject);
+						}
+
+						tempGrids[i].GetComponent<Collider>().enabled = false;
+
+					}
+
 				}
 
-				tempArray[i].GetComponent<Collider>().enabled = false;
-
-			}
-
-			foreach (Collider c in mainArray) {
-				if (!c.enabled) {
-					c.enabled = true;
+				foreach (Collider c in mainArray) {
+					if (!c.enabled) {
+						c.enabled = true;
+					}
+					else if (c.enabled) {
+						result = false;
+					}
 				}
-				else if (c.enabled) {
-					result = false;
-				}
-			}
 
-			if (!result) {
-				block.GetComponent<Collider>().enabled = true;
-				return result;
+				if (!result) return false;
+
 			}
 
 		}
 
-		return result;
+		return true;
+
 	}
 
 	public void SaveShip() {
@@ -290,16 +315,16 @@ public class BuildModeController : MonoBehaviour {
 		Block[] blocks = grids.GetComponentsInChildren<Block>();
 
 		List<string> lines = new List<string>();
-
+		
 		foreach (Block b in blocks) {
 			// Example #1: Write an array of strings to a file.
 			// Create a string array that consists of three lines.
 			lines.Add("<" + b.blockType.ToString().ToLower() + ">");
 			lines.Add(b.brandName);
 			lines.Add(b.modelName);
-			lines.Add(b.gameObject.transform.position.x.ToString());
-			lines.Add(b.gameObject.transform.position.y.ToString());
-			lines.Add(b.gameObject.transform.position.z.ToString());
+			lines.Add(Mathf.Round(b.gameObject.transform.position.x).ToString());
+			lines.Add(Mathf.Round(b.gameObject.transform.position.y).ToString());
+			lines.Add(Mathf.Round(b.gameObject.transform.position.z).ToString());
 			lines.Add("");	// for blocks seperation
 		}
 		// WriteAllLines creates a file, writes a collection of strings to the file,
