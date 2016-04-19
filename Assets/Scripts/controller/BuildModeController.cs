@@ -1,35 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 //	TODO: Clean-up the code
 //	Author: Adnan Bulut Catikoglu - 2016
 
 public class BuildModeController : MonoBehaviour {
 
-	private GameObject playerSpaceship, playerSpaceship_Grid; // spaceship
-	private GameObject _cursorBlock, _selectedBlock;
+	private GameObject playerSpaceship, playerSpaceship_Grid;
+	private GameObject _cursorBlock, _selectedBlock, _infoPanel;
 	private Ray ray;
 	private RaycastHit rayHit;
-	private Vector3 placementPos, oldPos;
+	private Vector3 placementPos;
 	private int gridSize = 1;
-	private bool moveBlock;
+//	private bool moveBlock;
 
 	void Start() {
-		// Get Spaceship/Player to cache if it exists
-		if (GameObject.FindWithTag("Spaceship/Player"))
-			playerSpaceship = GameObject.FindWithTag("Spaceship/Player");
+		// Get Spaceship to cache if it exists
+		if (GameObject.FindWithTag("Spaceship/Main"))
+			playerSpaceship = GameObject.FindWithTag("Spaceship/Main");
 
-		// Check for existing Spaceship/Player
+		// Check for existing Spaceship
 		if (playerSpaceship != null) {
-			playerSpaceship.name = "Construction";
-			playerSpaceship.tag = "Spaceship/Construction";
-
 			// disables physics script
-			playerSpaceship.GetComponent<SpaceshipPhysics>().enabled = false;
-			// zeroes movement velocities
+			playerSpaceship.GetComponent<SpaceshipPhysics>().PhysicsToggle(false);
+			// reset movement velocities
 			playerSpaceship.GetComponent<Rigidbody>().velocity = Vector3.zero;
 			playerSpaceship.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
 			// spaceship position reset
@@ -38,6 +38,8 @@ public class BuildModeController : MonoBehaviour {
 			// grids position reset
 			playerSpaceship.transform.Find("Grids").transform.position = Vector3.zero;
 			playerSpaceship.transform.Find("Grids").transform.rotation = Quaternion.Euler(Vector3.zero);
+			// rename the ship again (required for renaming field, otherwise field left empty)
+			RenameShip(playerSpaceship.name);
 		}
 
 //		// Check for existing Spaceship/Construction
@@ -46,13 +48,13 @@ public class BuildModeController : MonoBehaviour {
 //			playerSpaceship = GameObject.FindWithTag("Spaceship/Construction");
 //		}
 
-		// If Spaceship/Player or Spaceship/Construction is not found in the scene, create Spaceship/Construction
+		// If playerSpaceship is null (meaning there isn't any existing ships in the scene), create a new Spaceship
 		else {
-			// creates a new construction
-			var constructionPrefab = (GameObject)Resources.Load("Prefabs/Player/Construction", typeof(GameObject));
+			// creates a new spaceship
+			var constructionPrefab = (GameObject)Resources.Load("Prefabs/Player/Spaceship", typeof(GameObject));
 			playerSpaceship = (GameObject)Instantiate(constructionPrefab, transform.position, transform.rotation);
 			// required because name is set to "... (Clone)" due to instantiation
-			playerSpaceship.name = "Construction";
+			RenameShip("Untitled Ship");
 		}
 
 		// Get Spaceship/Grid to cache
@@ -71,6 +73,11 @@ public class BuildModeController : MonoBehaviour {
 		var holoBlock = (GameObject)Resources.Load("Prefabs/Holo/Placeholder-Holo", typeof(GameObject));
 		_cursorBlock = (GameObject)Instantiate(holoBlock, transform.position, transform.rotation);
 		_cursorBlock.SetActive(false);
+
+		// Get InfoPanel to cache
+		_infoPanel = GameObject.FindGameObjectWithTag("GUI/InfoPanel/Main");
+		// Clear InfoPanel
+		ClearInfoPanel();
 	}
 
 	void Update() {
@@ -132,6 +139,11 @@ public class BuildModeController : MonoBehaviour {
 				_cursorBlock.SetActive(true);
 			}
 
+			// Call Info panel function if mouse ray collides with a block
+			if (Physics.Raycast(ray.origin, ray.direction, out rayHit, 15))
+				RefreshInfoPanel();
+			else ClearInfoPanel();
+
 			// Place block
 			if (Input.GetMouseButtonDown(0)) {
 				// Block placement function call
@@ -172,19 +184,26 @@ public class BuildModeController : MonoBehaviour {
 			Vector3 cam = Camera.main.transform.position;
 
 			if (mX != 0) {
-				cam += new Vector3(mX * -0.5f, 0, 0);
+				cam += new Vector3(mX * -Camera.main.orthographicSize / 30, 0, 0);
 			}
 			if (mY != 0) {
-				cam += new Vector3(0, 0, mY * -0.5f);
+				cam += new Vector3(0, 0, mY * -Camera.main.orthographicSize / 30);
 			}
 			cam = new Vector3(Mathf.Clamp(cam.x, -10, 10), cam.y, (Mathf.Clamp(cam.z, -10, 10)));
 			Camera.main.transform.position = cam;
 		}
-		// Camera reset
+		// Camera zoom
+		else if (Input.GetAxis("Mouse ScrollWheel") > 0 && Camera.main.orthographicSize > 1) {
+			Camera.main.orthographicSize--;
+		}
+		else if (Input.GetAxis("Mouse ScrollWheel") < 0 && Camera.main.orthographicSize < 25) {
+			Camera.main.orthographicSize++;
+		}
+		// Camera position and zoom reset
 		else if (Input.GetKeyDown(KeyCode.Space)) {
+			Camera.main.orthographicSize = 15;
 			Camera.main.transform.position = new Vector3(0, 10, 0);
 		}
-
 	}
 
 	public void PlaceBlock(GameObject selBlock, Vector3 placePos, Quaternion placeRot, Ray ray) {
@@ -192,17 +211,29 @@ public class BuildModeController : MonoBehaviour {
 		if (Physics.Raycast(ray.origin, ray.direction, out rayHit, 15)) {
 			if (rayHit.collider.gameObject.GetComponent<Block>().structureType == StructureType.Interior) {
 				if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Component) {
+					// Play placement sound
+					GetComponent<SFX_BuildMode>().placeBlockSFX();
+					// Place block
 					var newBlock = (GameObject)Instantiate(selBlock, placePos, placeRot);
 					newBlock.transform.parent = playerSpaceship_Grid.transform;
 				}
+				// Play error sound
+				else GetComponent<SFX_BuildMode>().errorBlockSFX();
 			}
+			// Play error sound
+			else GetComponent<SFX_BuildMode>().errorBlockSFX();
 		}
 		// If mouse ray doesn't collide with a block
 		else {
 			if (_selectedBlock.GetComponent<Block>().blockType != BlockType.Component) {
-				var newBlock = (GameObject)Instantiate(selBlock, placePos, placeRot);
+				// Play placement sound
+				GetComponent<SFX_BuildMode>().placeBlockSFX();
+				// Place block
+				var newBlock = (GameObject) Instantiate(selBlock, placePos, placeRot);
 				newBlock.transform.parent = playerSpaceship_Grid.transform;
 			}
+			// Play error sound
+			else GetComponent<SFX_BuildMode>().errorBlockSFX();
 		}
 	}
 
@@ -212,21 +243,32 @@ public class BuildModeController : MonoBehaviour {
 
 			var blockToDel = rayHit.collider.gameObject;
 
+			// If it's a structure block
 			if (blockToDel.GetComponent<Block>().blockType == BlockType.Structure) {
 				// Grid seperation check
 				if (GridIntegrityCheck(blockToDel)) {
+					// Play remove sound
+					GetComponent<SFX_BuildMode>().removeBlockSFX();
 					// Delete block
 					Destroy(blockToDel);
 				}
 				else {
+					// Play error sound
+					GetComponent<SFX_BuildMode>().errorBlockSFX();
 					// Can't delete block
 					Debug.LogError("Can't delete block - grid seperation detected.");
 				}
 			}
+			// If it's a component block
 			else if (blockToDel.GetComponent<Block>().blockType == BlockType.Component) {
+				// Play remove sound
+				GetComponent<SFX_BuildMode>().removeBlockSFX();
+				// Delete block
 				Destroy(blockToDel);
 			}
 		}
+		// Play error sound
+		else GetComponent<SFX_BuildMode>().errorBlockSFX();
 	}
 	
 	public bool GridIntegrityCheck(GameObject block) {
@@ -315,17 +357,19 @@ public class BuildModeController : MonoBehaviour {
 		Block[] blocks = grids.GetComponentsInChildren<Block>();
 
 		List<string> lines = new List<string>();
-		
+
+		lines.Add("<Spaceship Name>");
+		lines.Add(playerSpaceship.name);
+		lines.Add("");  // for line seperation
+
 		foreach (Block b in blocks) {
-			// Example #1: Write an array of strings to a file.
-			// Create a string array that consists of three lines.
+			// Write block information
 			lines.Add("<" + b.blockType.ToString().ToLower() + ">");
-			lines.Add(b.brandName);
-			lines.Add(b.modelName);
+			lines.Add(b.blockName);
 			lines.Add(Mathf.Round(b.gameObject.transform.position.x).ToString());
 			lines.Add(Mathf.Round(b.gameObject.transform.position.y).ToString());
 			lines.Add(Mathf.Round(b.gameObject.transform.position.z).ToString());
-			lines.Add("");	// for blocks seperation
+			lines.Add("");	// for line seperation
 		}
 		// WriteAllLines creates a file, writes a collection of strings to the file,
 		// and then closes the file.  You do NOT need to call Flush() or Close().
@@ -350,11 +394,14 @@ public class BuildModeController : MonoBehaviour {
 				Destroy(target);
 			}
 
+			reader.ReadLine(); // spaceship tag
+			string line_ShipName = reader.ReadLine(); // name of spaceship
+			reader.ReadLine(); // empty line (for visual seperation in save file)
+
 			while (!reader.EndOfStream) {
 
 				string line_Type = reader.ReadLine(); // type of block (tag in xml file)
-				string line_Brand = reader.ReadLine(); // brand of block
-				string line_Model = reader.ReadLine(); // model of block
+				string line_Name = reader.ReadLine(); // name of block
 				float line_xPos = float.Parse(reader.ReadLine()); // transform.x of block
 				float line_yPos = float.Parse(reader.ReadLine()); // transform.y of block
 				float line_zPos = float.Parse(reader.ReadLine()); // transform.z of block
@@ -363,7 +410,7 @@ public class BuildModeController : MonoBehaviour {
 				line_Type = line_Type.Substring(1, 9); // tag chars removal
 
 				foreach (GameObject go in buildingBlocks) {
-					if (go.GetComponent<Block>().brandName == line_Brand && go.GetComponent<Block>().modelName == line_Model) {
+					if (go.GetComponent<Block>().blockName == line_Name) {
 						if (line_Type == go.GetComponent<Block>().blockType.ToString().ToLower()) {
 
 							Vector3 line_Position = new Vector3(line_xPos, line_yPos, line_zPos);
@@ -378,11 +425,22 @@ public class BuildModeController : MonoBehaviour {
 
 			}
 
+			RenameShip(line_ShipName); // name the ship
 			reader.Close();
 
 		}
+
 		else Debug.LogError("No save file exists.");
 
+	}
+
+	public void RenameShip(InputField inputField) {
+		playerSpaceship.name = inputField.text; // change the name of spaceship with typing into renaming field
+	}
+
+	public void RenameShip(string shipName) {
+		playerSpaceship.name = shipName; // assign name to spaceship
+		GameObject.Find("ShipNameField").GetComponent<InputField>().text = shipName; // assign name to renaming field
 	}
 
 	public void BlockSelection(int i) {
@@ -406,6 +464,47 @@ public class BuildModeController : MonoBehaviour {
 				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Reactor_01", typeof(GameObject));
 				break;
 		}
+	}
+
+	public void RefreshInfoPanel() {
+//		// Clear info panel
+//		ClearInfoPanel();
+		// Initialize
+		Block block = rayHit.collider.gameObject.GetComponent<Block>();
+		var values = block.GetType().GetFields(BindingFlags.Instance |
+					BindingFlags.Static |
+					BindingFlags.Public);
+		var fields = GameObject.FindGameObjectsWithTag("GUI/InfoPanel/Field");
+		// Fill info panel
+		foreach (FieldInfo value in values) {
+			foreach (GameObject field in fields) {
+				if (field.name.Equals(value.Name)) {
+					if (field.name.Equals("blockName") || field.name.Equals("blockType")) {
+						field.GetComponent<Text>().text = value.GetValue(block).ToString();
+						break; // for breaking the 2nd foreach earlier (for performance reasons), otherwise redundant with "else" keywords
+					}
+					else if (field.name.Equals("structureType") || field.name.Equals("componentType")) {
+						if (value.GetValue(block).ToString().Equals("None"))
+							field.GetComponent<Text>().text = "";
+						else field.GetComponent<Text>().text = value.GetValue(block).ToString();
+						break; // for breaking the 2nd foreach earlier (for performance reasons), otherwise redundant with "else" keywords
+					}
+					else {
+						field.GetComponent<Text>().text = value.Name.Substring(0, 1).ToUpper() + value.Name.Substring(1) + ": " + value.GetValue(block);
+						break; // for breaking the 2nd foreach earlier (for performance reasons), otherwise redundant with "else" keywords
+					}
+				}
+			}
+		}
+//		_infoPanel.GetComponent<CanvasRenderer>().SetAlpha(1f);
+	}
+
+	public void ClearInfoPanel() {
+		Text[] fields = _infoPanel.GetComponentsInChildren<Text>();
+		foreach (Text field in fields) {
+			field.text = "";
+		}
+//		_infoPanel.GetComponent<CanvasRenderer>().SetAlpha(0f);
 	}
 
 	public void ChangeScene(string scene) {

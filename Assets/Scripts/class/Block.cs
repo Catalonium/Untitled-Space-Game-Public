@@ -18,7 +18,7 @@ public class Block : MonoBehaviour {
 	public ComponentType componentType;
 
 //	public bool[] mountPos = {true, true, true, true};
-	public string brandName, modelName;
+	public string blockName;
 	public float hull, mass, energyGen, energyCon, maneuver, thrust;
 
 }

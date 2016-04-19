@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 public class SpaceshipStats : MonoBehaviour {
-
+	
 	public float Hull, Mass, EnergyGen, EnergyCon, Maneuver, Thrust;
 	private Rigidbody rb;
 	private Block[] blocks;
@@ -13,7 +13,7 @@ public class SpaceshipStats : MonoBehaviour {
 		StatCalc();
 	}
 
-	private void Update() {
+	void Update() {
 		if (blocks.Length != grids.GetComponentsInChildren<Block>().Length)
 			StatCalc();
 	}

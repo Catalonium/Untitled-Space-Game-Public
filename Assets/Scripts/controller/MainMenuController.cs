@@ -5,8 +5,8 @@ using UnityEngine.SceneManagement;
 public class MainMenuController : MonoBehaviour {
 
 	public void ChangeScene(string scene) {
-		if (GameObject.FindWithTag("Spaceship/Construction"))
-			DontDestroyOnLoad(GameObject.FindWithTag("Spaceship/Construction"));
+		if (GameObject.FindWithTag("Spaceship/Main"))
+			DontDestroyOnLoad(GameObject.FindWithTag("Spaceship/Main"));
 		SceneManager.LoadScene(scene);
 	}
 

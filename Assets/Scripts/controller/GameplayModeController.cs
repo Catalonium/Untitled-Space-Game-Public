@@ -1,15 +1,16 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameplayModeController : MonoBehaviour {
 	
 	private GameObject playerSpaceship; // spaceship
-	private Transform mainCam, backCam; // cameras
-
-	// Use this for initialization
+	private Camera mainCam, backCam; // cameras & starfield
+	
 	void Start() {
 
-		var construction = GameObject.FindWithTag("Spaceship/Construction");
+//		var construction = GameObject.FindWithTag("Spaceship/Main");
+		playerSpaceship = GameObject.FindWithTag("Spaceship/Main");
 		var grids = GameObject.FindWithTag("Spaceship/Grids");
 
 		// COLLIDER TRIGGER SWITCH
@@ -18,28 +19,47 @@ public class GameplayModeController : MonoBehaviour {
 			bc.isTrigger = false;
 		}
 
-		var spaceshipPrefab = (GameObject)Resources.Load("Prefabs/Player/Spaceship", typeof(GameObject));
-		playerSpaceship = (GameObject)Instantiate(spaceshipPrefab, construction.GetComponent<Rigidbody>().centerOfMass, Quaternion.Euler(Vector3.zero));
-		playerSpaceship.name = "Spaceship";
-		grids.transform.parent = playerSpaceship.transform;
+//		var spaceshipPrefab = (GameObject)Resources.Load("Prefabs/Player/Spaceship", typeof(GameObject));
+//		playerSpaceship = (GameObject)Instantiate(spaceshipPrefab, construction.GetComponent<Rigidbody>().centerOfMass, Quaternion.Euler(Vector3.zero));
+//		playerSpaceship.name = construction.name;
+//		grids.transform.parent = playerSpaceship.transform;
+//
+//		Destroy(construction);
+//
+//		playerSpaceship.transform.position = Vector3.zero;
+//		playerSpaceship.GetComponent<SpaceshipPhysics>().enabled = true;
 
-		Destroy(construction);
+		grids.transform.position = -playerSpaceship.GetComponent<Rigidbody>().centerOfMass;
+		playerSpaceship.GetComponent<SpaceshipPhysics>().PhysicsToggle(true);
 
-		playerSpaceship.transform.position = Vector3.zero;
-		playerSpaceship.GetComponent<SpaceshipPhysics>().enabled = true;
+		// Camera & Starfield initialization
+		mainCam = Camera.main;
+		backCam = GameObject.FindGameObjectWithTag("BackgroundCamera").GetComponent<Camera>();
 
-		// Camera initialization
-		mainCam = Camera.main.transform;
-		backCam = GameObject.FindGameObjectWithTag("BackgroundCamera").transform;
+		// Spaceship name init
+		GameObject.Find("GUIShipName").GetComponent<Text>().text = playerSpaceship.name;
 
 	}
-
-	// Update is called once per frame
+	
 	void Update() {
 		// Player cam mover
-		mainCam.position = new Vector3(playerSpaceship.transform.position.x, 10, playerSpaceship.transform.position.z);
+		mainCam.transform.position = new Vector3(playerSpaceship.transform.position.x, 10, playerSpaceship.transform.position.z);
 		// Background cam mover
-		backCam.position = new Vector3(playerSpaceship.transform.position.x * 0.005f, 10, playerSpaceship.transform.position.z * 0.005f);
+		backCam.transform.position = new Vector3(playerSpaceship.transform.position.x * 0.005f, 10, playerSpaceship.transform.position.z * 0.005f);
+	}
+
+	void LateUpdate() {
+		// Camera zoom
+		if (Input.GetAxis("Mouse ScrollWheel") > 0 && Camera.main.orthographicSize > 1) {
+			Camera.main.orthographicSize--;
+		}
+		else if (Input.GetAxis("Mouse ScrollWheel") < 0 && Camera.main.orthographicSize < 25) {
+			Camera.main.orthographicSize++;
+		}
+		// Camera zoom reset
+		else if (Input.GetMouseButton(2)) {
+			Camera.main.orthographicSize = 15;
+		}
 	}
 
 	public void ChangeScene(string scene) {
