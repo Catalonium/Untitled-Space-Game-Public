@@ -1,21 +1,49 @@
 fileFormatVersion: 2
-guid: ceafb2c7c6221794088ff144f341f86d
-timeCreated: 1460125894
+guid: f7adc47b7a08bab4fadd596f375c429f
+timeCreated: 1461339533
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
-    100000: Cube
-    100002: Point
-    100004: //RootNode
-    400000: Cube
-    400002: Point
-    400004: //RootNode
-    2300000: Cube
-    3300000: Cube
-    4300000: Cube
+    100000: Chassis
+    100002: //RootNode
+    100004: MagneticScaler
+    100006: MainCore
+    100008: StabilizerChamber
+    100010: StabilizerPipes
+    100012: StructuralMagnets
+    100014: StructuralPipes
+    400000: Chassis
+    400002: //RootNode
+    400004: MagneticScaler
+    400006: MainCore
+    400008: StabilizerChamber
+    400010: StabilizerPipes
+    400012: StructuralMagnets
+    400014: StructuralPipes
+    2300000: Chassis
+    2300002: MagneticScaler
+    2300004: MainCore
+    2300006: StabilizerChamber
+    2300008: StabilizerPipes
+    2300010: StructuralMagnets
+    2300012: StructuralPipes
+    3300000: Chassis
+    3300002: MagneticScaler
+    3300004: MainCore
+    3300006: StabilizerChamber
+    3300008: StabilizerPipes
+    3300010: StructuralMagnets
+    3300012: StructuralPipes
+    4300000: StructuralPipes
+    4300002: MagneticScaler
+    4300004: StabilizerChamber
+    4300006: MainCore
+    4300008: Chassis
+    4300010: StructuralMagnets
+    4300012: StabilizerPipes
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:
@@ -38,7 +66,7 @@ ModelImporter:
     isReadable: 1
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: 0.5
     meshCompression: 0
     addColliders: 0
     importBlendShapes: 1

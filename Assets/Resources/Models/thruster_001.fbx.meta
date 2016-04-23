@@ -1,36 +1,49 @@
 fileFormatVersion: 2
-guid: d567b781ee80cba43abaabbd10f9ae55
-timeCreated: 1455577039
+guid: 281805357a83e6645be035f67b016d2b
+timeCreated: 1461332487
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
     100000: Chassis
-    100002: Cooling Pods
-    100004: Ignition Chamber
-    100006: Reaction Rods
-    100008: //RootNode
+    100002: CoolantBlocks
+    100004: CoolantPipes
+    100006: CoolantReservoirs
+    100008: MainChamber
+    100010: Nozzle
+    100012: //RootNode
+    100014: TransferPipes
     400000: Chassis
-    400002: Cooling Pods
-    400004: Ignition Chamber
-    400006: Reaction Rods
-    400008: //RootNode
+    400002: CoolantBlocks
+    400004: CoolantPipes
+    400006: CoolantReservoirs
+    400008: MainChamber
+    400010: Nozzle
+    400012: //RootNode
+    400014: TransferPipes
     2300000: Chassis
-    2300002: Cooling Pods
-    2300004: Ignition Chamber
-    2300006: Reaction Rods
+    2300002: CoolantBlocks
+    2300004: CoolantPipes
+    2300006: CoolantReservoirs
+    2300008: MainChamber
+    2300010: Nozzle
+    2300012: TransferPipes
     3300000: Chassis
-    3300002: Cooling Pods
-    3300004: Ignition Chamber
-    3300006: Reaction Rods
-    4300000: Reaction Rods
-    4300002: Cooling Pods
-    4300004: Chassis
-    4300006: Ignition Chamber
-    7400000: Take 001
-    9500000: //RootNode
+    3300002: CoolantBlocks
+    3300004: CoolantPipes
+    3300006: CoolantReservoirs
+    3300008: MainChamber
+    3300010: Nozzle
+    3300012: TransferPipes
+    4300000: Nozzle
+    4300002: TransferPipes
+    4300004: MainChamber
+    4300006: CoolantBlocks
+    4300008: Chassis
+    4300010: CoolantReservoirs
+    4300012: CoolantPipes
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:
@@ -53,7 +66,7 @@ ModelImporter:
     isReadable: 1
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: 0.5
     meshCompression: 0
     addColliders: 0
     importBlendShapes: 1
@@ -87,7 +100,7 @@ ModelImporter:
     rootMotionBoneName: 
     hasTranslationDoF: 0
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  animationType: 2
+  animationType: 0
   humanoidOversampling: 1
   additionalBone: 0
   userData: 

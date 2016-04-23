@@ -19,10 +19,10 @@ public class SpaceshipStats : MonoBehaviour {
 	}
 
 	public void StatCalc() {
-
 		// Reset every stat
 		Hull = 0;		Mass = 0;		EnergyGen = 0;
 		EnergyCon = 0;	Maneuver = 0;	Thrust = 0;
+		isControllable = false;
 
 		blocks = grids.GetComponentsInChildren<Block>();
 
@@ -33,7 +33,13 @@ public class SpaceshipStats : MonoBehaviour {
 			EnergyCon += b.energyCon;
 			Maneuver += b.maneuver;
 			Thrust += b.thrust;
-		}
 
+			if (b.componentType.Equals(ComponentType.Bridge))
+				isControllable = true;
+		}
 	}
+
+	// read-only variable for ship control ability
+	public bool isControllable { get; private set; }
+
 }

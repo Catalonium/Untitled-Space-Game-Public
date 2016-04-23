@@ -193,7 +193,7 @@ public class BuildModeController : MonoBehaviour {
 			Camera.main.transform.position = cam;
 		}
 		// Camera zoom
-		else if (Input.GetAxis("Mouse ScrollWheel") > 0 && Camera.main.orthographicSize > 1) {
+		else if (Input.GetAxis("Mouse ScrollWheel") > 0 && Camera.main.orthographicSize > 3) {
 			Camera.main.orthographicSize--;
 		}
 		else if (Input.GetAxis("Mouse ScrollWheel") < 0 && Camera.main.orthographicSize < 25) {
@@ -444,7 +444,14 @@ public class BuildModeController : MonoBehaviour {
 	}
 
 	public void BlockSelection(int i) {
-		switch(i) {
+		var selButtons = GameObject.FindGameObjectsWithTag("BlockSelectionButtons");
+		foreach (var btn in selButtons) {
+			if (!btn.GetComponent<Button>().IsInteractable())
+				btn.GetComponent<Button>().interactable = true;
+			else if ("BlockButton" + i == btn.name)
+				btn.GetComponent<Button>().interactable = false;
+		}
+		switch (i) {
 			case 1:
 				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
 				break;
@@ -458,7 +465,7 @@ public class BuildModeController : MonoBehaviour {
 				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Thruster_01", typeof(GameObject));
 				break;
 			case 5:
-				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Gyroscope", typeof(GameObject));
+				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Gyroscope_01", typeof(GameObject));
 				break;
 			case 6:
 				_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Reactor_01", typeof(GameObject));
@@ -466,11 +473,13 @@ public class BuildModeController : MonoBehaviour {
 		}
 	}
 
-	public void RefreshInfoPanel() {
-//		// Clear info panel
-//		ClearInfoPanel();
+	public void RefreshInfoPanel(GameObject refBlock = null) {
 		// Initialize
-		Block block = rayHit.collider.gameObject.GetComponent<Block>();
+		Block block;
+		// if a reference block is not given (null as default)
+		if (refBlock == null) block = rayHit.collider.gameObject.GetComponent<Block>();
+		// if a reference block is given
+		else block = refBlock.GetComponent<Block>();
 		var values = block.GetType().GetFields(BindingFlags.Instance |
 					BindingFlags.Static |
 					BindingFlags.Public);

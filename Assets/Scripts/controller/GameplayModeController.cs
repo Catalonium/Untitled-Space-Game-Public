@@ -50,7 +50,7 @@ public class GameplayModeController : MonoBehaviour {
 
 	void LateUpdate() {
 		// Camera zoom
-		if (Input.GetAxis("Mouse ScrollWheel") > 0 && Camera.main.orthographicSize > 1) {
+		if (Input.GetAxis("Mouse ScrollWheel") > 0 && Camera.main.orthographicSize > 3) {
 			Camera.main.orthographicSize--;
 		}
 		else if (Input.GetAxis("Mouse ScrollWheel") < 0 && Camera.main.orthographicSize < 25) {

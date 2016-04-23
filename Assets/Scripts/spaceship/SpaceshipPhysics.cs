@@ -34,13 +34,22 @@ public class SpaceshipPhysics : MonoBehaviour {
 
 	void FixedUpdate() {
 
-		// Get axis' here for caching
-		thrustInput = Input.GetAxisRaw("Vertical");
-		maneuverInput = Input.GetAxisRaw("Horizontal");
-
-
-		// Calculations
+		// Calculations & Logic
 		{
+
+			// Ship control logic
+			{
+				if (spaceshipStats.isControllable) {
+					// Get axises for caching
+					thrustInput = Input.GetAxisRaw("Vertical");
+					maneuverInput = Input.GetAxisRaw("Horizontal");
+				}
+				else {
+					thrustInput = 0;
+					maneuverInput = 0;
+				}
+			}
+
 			// Energy efficiency calculation
 			{
 				if (spaceshipStats.EnergyCon > spaceshipStats.EnergyGen) {
@@ -85,11 +94,11 @@ public class SpaceshipPhysics : MonoBehaviour {
 				}
 
 				// Full thrust
-				if (Input.GetKey(KeyCode.R)) {
+				if (Input.GetKey(KeyCode.R) && spaceshipStats.isControllable) {
 					thr = lim;
 				}
 				// Full stop
-				if (Input.GetKey(KeyCode.F)) {
+				if (Input.GetKey(KeyCode.F) && spaceshipStats.isControllable) {
 					thr = 0;
 				}
 			}
@@ -119,7 +128,7 @@ public class SpaceshipPhysics : MonoBehaviour {
 		}
 
 
-		// Stopping formula
+		// Stopping logic
 		{
 			if (thrustInput.Equals(0) && thr.Equals(0) && rb.velocity.magnitude < 0.005f)
 				rb.velocity = Vector3.zero;
@@ -140,13 +149,9 @@ public class SpaceshipPhysics : MonoBehaviour {
 	}
 
 	// read-only variable for thruster state
-	public bool thrustState {
-		get { return !thr.Equals(0); }
-	}
+	public bool thrustState { get { return !thr.Equals(0); } }
 	// read-only variable for maneuvering state
-	public bool maneuverState {
-		get { return !maneuverInput.Equals(0); }
-	}
+	public bool maneuverState { get { return !maneuverInput.Equals(0); } }
 	// read-only variable for speed
 	public float currentSpeed { get; private set; }
 	// read-only variable for thrust amount
