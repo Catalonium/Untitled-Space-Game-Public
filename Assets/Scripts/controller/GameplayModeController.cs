@@ -62,9 +62,4 @@ public class GameplayModeController : MonoBehaviour {
 		}
 	}
 
-	public void ChangeScene(string scene) {
-		DontDestroyOnLoad(playerSpaceship);
-		SceneManager.LoadScene(scene);
-	}
-
 }

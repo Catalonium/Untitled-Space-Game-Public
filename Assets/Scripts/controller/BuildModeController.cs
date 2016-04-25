@@ -366,9 +366,9 @@ public class BuildModeController : MonoBehaviour {
 			// Write block information
 			lines.Add("<" + b.blockType.ToString().ToLower() + ">");
 			lines.Add(b.blockName);
-			lines.Add(Mathf.Round(b.gameObject.transform.position.x).ToString());
-			lines.Add(Mathf.Round(b.gameObject.transform.position.y).ToString());
-			lines.Add(Mathf.Round(b.gameObject.transform.position.z).ToString());
+			lines.Add(Mathf.Round(b.gameObject.transform.position.x).ToString()); // Mathf.Round is required for precise block placement
+			lines.Add((b.gameObject.transform.position.y).ToString()); // Raw placement required for unique block positions (y-axis only)
+			lines.Add(Mathf.Round(b.gameObject.transform.position.z).ToString()); // Mathf.Round is required for precise block placement
 			lines.Add("");	// for line seperation
 		}
 		// WriteAllLines creates a file, writes a collection of strings to the file,
@@ -444,9 +444,10 @@ public class BuildModeController : MonoBehaviour {
 	}
 
 	public void BlockSelection(int i) {
-		var selButtons = GameObject.FindGameObjectsWithTag("BlockSelectionButtons");
+		var selButtons = GameObject.FindGameObjectsWithTag("GUI/BlockSelection/Button");
 		foreach (var btn in selButtons) {
-			if (!btn.GetComponent<Button>().IsInteractable())
+			// if button is NOT interactable (disabled) AND button (by name) is NOT the same with the selection
+			if (!btn.GetComponent<Button>().IsInteractable() && "BlockButton" + i != btn.name)
 				btn.GetComponent<Button>().interactable = true;
 			else if ("BlockButton" + i == btn.name)
 				btn.GetComponent<Button>().interactable = false;
@@ -514,11 +515,6 @@ public class BuildModeController : MonoBehaviour {
 			field.text = "";
 		}
 //		_infoPanel.GetComponent<CanvasRenderer>().SetAlpha(0f);
-	}
-
-	public void ChangeScene(string scene) {
-		DontDestroyOnLoad(playerSpaceship);
-		SceneManager.LoadScene(scene);
 	}
 
 }

@@ -1,0 +1,1077 @@
+<Spaceship Name>
+Untitled Ship
+
+<structure>
+Generic Hull
+-2
+1.776357E-15
+-3
+
+<structure>
+Generic Hull
+-3
+0
+-3
+
+<structure>
+Generic Hull
+-4
+0
+-3
+
+<structure>
+Generic Hull
+-4
+3.552714E-15
+-4
+
+<structure>
+Generic Hull
+-4
+3.552714E-15
+-5
+
+<structure>
+Generic Hull
+-4
+3.552714E-15
+-6
+
+<structure>
+Generic Hull
+3
+0
+-3
+
+<structure>
+Generic Hull
+4
+0
+-3
+
+<structure>
+Generic Hull
+5
+1.776357E-15
+-3
+
+<structure>
+Generic Hull
+5
+-3.552714E-15
+-4
+
+<structure>
+Generic Hull
+5
+-3.552714E-15
+-5
+
+<structure>
+Generic Hull
+5
+-3.552714E-15
+-6
+
+<structure>
+Generic Hull
+-4
+3.552714E-15
+-7
+
+<structure>
+Generic Hull
+5
+-3.552714E-15
+-7
+
+<structure>
+Generic Interior
+-3
+-0.5
+-7
+
+<structure>
+Generic Interior
+4
+-0.5
+-7
+
+<structure>
+Generic Interior
+3
+-0.5
+-7
+
+<structure>
+Generic Interior
+2
+-0.5
+-7
+
+<structure>
+Generic Interior
+1
+-0.5
+-7
+
+<structure>
+Generic Interior
+0
+-0.5
+-7
+
+<structure>
+Generic Interior
+-2
+-0.5
+-7
+
+<structure>
+Generic Interior
+-1
+-0.5
+-7
+
+<structure>
+Generic Interior
+-3
+-0.5
+-6
+
+<structure>
+Generic Interior
+-1
+-0.5
+-6
+
+<structure>
+Generic Interior
+2
+-0.5
+-6
+
+<structure>
+Generic Interior
+4
+-0.5
+-6
+
+<structure>
+Generic Interior
+3
+-0.5
+-6
+
+<structure>
+Generic Interior
+1
+-0.5
+-6
+
+<structure>
+Generic Interior
+0
+-0.5
+-6
+
+<structure>
+Generic Interior
+-2
+-0.5
+-6
+
+<structure>
+Generic Interior
+-3
+-0.5
+-5
+
+<structure>
+Generic Interior
+-3
+-0.5
+-4
+
+<structure>
+Generic Interior
+-2
+-0.5
+-4
+
+<structure>
+Generic Interior
+-1
+-0.5
+-5
+
+<structure>
+Generic Interior
+2
+-0.5
+-5
+
+<structure>
+Generic Interior
+4
+-0.5
+-5
+
+<structure>
+Generic Interior
+4
+-0.5
+-4
+
+<structure>
+Generic Interior
+3
+-0.5
+-4
+
+<structure>
+Generic Interior
+3
+-0.5
+-5
+
+<structure>
+Generic Interior
+2
+-0.5
+-4
+
+<structure>
+Generic Interior
+1
+-0.5
+-5
+
+<structure>
+Generic Interior
+0
+-0.5
+-5
+
+<structure>
+Generic Interior
+-2
+-0.5
+-5
+
+<structure>
+Generic Interior
+-1
+-0.5
+-4
+
+<structure>
+Generic Interior
+0
+-0.5
+-4
+
+<structure>
+Generic Interior
+1
+-0.5
+-4
+
+<structure>
+Generic Interior
+2
+-0.5
+-2
+
+<structure>
+Generic Interior
+2
+-0.5
+-1
+
+<structure>
+Generic Interior
+-1
+-0.5
+-1
+
+<structure>
+Generic Interior
+-1
+-0.5
+-2
+
+<structure>
+Generic Interior
+2
+-0.5
+0
+
+<structure>
+Generic Interior
+-1
+-0.5
+0
+
+<structure>
+Generic Hull
+-2
+0
+1
+
+<structure>
+Generic Hull
+3
+4.440892E-16
+1
+
+<structure>
+Generic Hull
+-1
+-1.776357E-15
+3
+
+<structure>
+Generic Hull
+-1
+-1.776357E-15
+4
+
+<structure>
+Generic Hull
+-1
+0
+5
+
+<structure>
+Generic Hull
+-1
+0
+6
+
+<structure>
+Generic Hull
+-1
+0
+7
+
+<structure>
+Generic Hull
+-1
+0
+8
+
+<structure>
+Generic Hull
+-1
+0
+9
+
+<structure>
+Generic Hull
+-1
+0
+10
+
+<structure>
+Generic Hull
+-1
+0
+11
+
+<structure>
+Generic Hull
+2
+-1.776357E-15
+3
+
+<structure>
+Generic Hull
+2
+-1.776357E-15
+4
+
+<structure>
+Generic Hull
+2
+3.552714E-15
+5
+
+<structure>
+Generic Hull
+2
+3.552714E-15
+6
+
+<structure>
+Generic Hull
+2
+3.552714E-15
+7
+
+<structure>
+Generic Hull
+2
+3.552714E-15
+8
+
+<structure>
+Generic Hull
+1
+0
+8
+
+<structure>
+Generic Hull
+1
+0
+9
+
+<structure>
+Generic Hull
+1
+0
+10
+
+<structure>
+Generic Hull
+1
+0
+11
+
+<structure>
+Generic Hull
+1
+0
+12
+
+<structure>
+Generic Hull
+1
+0
+13
+
+<structure>
+Generic Hull
+1
+0
+14
+
+<structure>
+Generic Hull
+1
+0
+15
+
+<structure>
+Generic Hull
+1
+0
+16
+
+<structure>
+Generic Interior
+0
+-0.5
+11
+
+<structure>
+Generic Interior
+0
+-0.5
+10
+
+<structure>
+Generic Interior
+0
+-0.5
+9
+
+<structure>
+Generic Interior
+0
+-0.5
+8
+
+<structure>
+Generic Interior
+0
+-0.5
+7
+
+<component>
+Generic Bridge
+0
+0
+11
+
+<structure>
+Generic Hull
+-1
+0
+12
+
+<structure>
+Generic Interior
+1
+-0.5
+7
+
+<structure>
+Generic Interior
+1
+-0.5
+6
+
+<structure>
+Generic Interior
+1
+-0.5
+5
+
+<structure>
+Generic Interior
+1
+-0.5
+4
+
+<structure>
+Generic Interior
+1
+-0.5
+2
+
+<structure>
+Generic Interior
+0
+-0.5
+5
+
+<structure>
+Generic Interior
+0
+-0.5
+6
+
+<structure>
+Generic Interior
+0
+-0.5
+2
+
+<structure>
+Generic Interior
+0
+-0.5
+4
+
+<structure>
+Generic Hull
+-4
+-7.105427E-15
+-8
+
+<structure>
+Generic Hull
+-4
+-7.105427E-15
+-9
+
+<structure>
+Generic Hull
+5
+7.105427E-15
+-8
+
+<structure>
+Generic Hull
+5
+7.105427E-15
+-9
+
+<structure>
+Generic Interior
+-3
+-0.5
+-8
+
+<structure>
+Generic Interior
+0
+-0.5
+-8
+
+<structure>
+Generic Interior
+2
+-0.5
+-8
+
+<structure>
+Generic Interior
+3
+-0.5
+-8
+
+<structure>
+Generic Interior
+4
+-0.5
+-8
+
+<structure>
+Generic Interior
+4
+-0.5
+-9
+
+<structure>
+Generic Interior
+-3
+-0.5
+-9
+
+<structure>
+Generic Interior
+0
+-0.5
+-9
+
+<structure>
+Generic Interior
+1
+-0.5
+-9
+
+<structure>
+Generic Interior
+3
+-0.5
+-9
+
+<structure>
+Generic Interior
+2
+-0.5
+-9
+
+<structure>
+Generic Interior
+1
+-0.5
+-8
+
+<structure>
+Generic Interior
+-1
+-0.5
+-8
+
+<structure>
+Generic Interior
+-1
+-0.5
+-9
+
+<structure>
+Generic Interior
+-2
+-0.5
+-9
+
+<structure>
+Generic Interior
+-2
+-0.5
+-8
+
+<component>
+Generic Thruster 01
+-3
+0
+-9
+
+<component>
+Generic Thruster 01
+-1
+0
+-9
+
+<component>
+Generic Thruster 01
+0
+0
+-9
+
+<component>
+Generic Thruster 01
+2
+0
+-9
+
+<component>
+Generic Thruster 01
+4
+7.105427E-15
+-9
+
+<component>
+Generic Thruster 01
+1
+0
+-9
+
+<component>
+Generic Thruster 01
+3
+0
+-9
+
+<component>
+Generic Thruster 01
+-2
+0
+-9
+
+<component>
+Generic Gyroscope 01
+-3
+0
+-8
+
+<component>
+Generic Gyroscope 01
+-1
+0
+-8
+
+<component>
+Generic Gyroscope 01
+-2
+0
+-8
+
+<component>
+Generic Gyroscope 01
+0
+0
+-8
+
+<component>
+Generic Gyroscope 01
+1
+0
+-8
+
+<component>
+Generic Gyroscope 01
+2
+0
+-8
+
+<component>
+Generic Gyroscope 01
+3
+0
+-8
+
+<component>
+Generic Gyroscope 01
+4
+7.105427E-15
+-8
+
+<component>
+Generic Reactor 01
+4
+-3.552714E-15
+-5
+
+<component>
+Generic Reactor 01
+4
+-3.552714E-15
+-6
+
+<component>
+Generic Reactor 01
+3
+3.552714E-15
+-5
+
+<component>
+Generic Reactor 01
+3
+3.552714E-15
+-6
+
+<component>
+Generic Reactor 01
+1
+0
+-5
+
+<component>
+Generic Reactor 01
+1
+0
+-6
+
+<component>
+Generic Reactor 01
+0
+0
+-6
+
+<component>
+Generic Reactor 01
+0
+0
+-5
+
+<component>
+Generic Reactor 01
+-2
+-3.552714E-15
+-5
+
+<component>
+Generic Reactor 01
+-2
+-3.552714E-15
+-6
+
+<component>
+Generic Reactor 01
+-3
+-3.552714E-15
+-6
+
+<component>
+Generic Reactor 01
+-3
+-3.552714E-15
+-5
+
+<structure>
+Generic Interior
+-1
+-0.5
+-3
+
+<structure>
+Generic Hull
+0
+0
+-3
+
+<structure>
+Generic Hull
+1
+1.776357E-15
+-3
+
+<structure>
+Generic Hull
+2
+-1.776357E-15
+-3
+
+<structure>
+Generic Hull
+0
+0
+-2
+
+<structure>
+Generic Interior
+1
+-0.5
+-2
+
+<structure>
+Generic Hull
+-2
+0
+2
+
+<structure>
+Generic Interior
+-1
+-0.5
+1
+
+<structure>
+Generic Hull
+0
+-1.084202E-19
+0
+
+<structure>
+Generic Interior
+1
+-0.5
+0
+
+<structure>
+Generic Hull
+-2
+1.776357E-15
+3
+
+<structure>
+Generic Interior
+-1
+-0.5
+2
+
+<structure>
+Generic Hull
+0
+0
+1
+
+<structure>
+Generic Hull
+2
+0
+1
+
+<structure>
+Generic Hull
+2
+0
+2
+
+<structure>
+Generic Hull
+4
+4.440892E-16
+1
+
+<structure>
+Generic Hull
+4
+-1.084202E-19
+0
+
+<structure>
+Generic Hull
+4
+0
+-1
+
+<structure>
+Generic Hull
+4
+0
+-2
+
+<structure>
+Generic Interior
+3
+-0.5
+-2
+
+<structure>
+Generic Interior
+3
+-0.5
+-1
+
+<structure>
+Generic Interior
+3
+-0.5
+0
+
+<structure>
+Generic Hull
+-3
+-4.440892E-16
+1
+
+<structure>
+Generic Hull
+-3
+-1.084202E-19
+0
+
+<structure>
+Generic Hull
+-3
+0
+-2
+
+<structure>
+Generic Interior
+-2
+-0.5
+0
+
+<structure>
+Generic Interior
+-2
+-0.5
+-1
+
+<structure>
+Generic Interior
+-2
+-0.5
+-2
+
+<structure>
+Generic Hull
+4
+0
+2
+
+<structure>
+Generic Hull
+4
+0
+3
+
+<structure>
+Generic Hull
+4
+0
+4
+
+<structure>
+Generic Interior
+-3
+-0.5
+-1
+
+<structure>
+Generic Interior
+0
+-0.5
+-1
+
+<structure>
+Generic Interior
+1
+-0.5
+-1
+
+<structure>
+Generic Hull
+1
+0
+1
+
+<structure>
+Generic Hull
+0
+0
+3
+
+<structure>
+Generic Interior
+1
+-0.5
+3
+
