@@ -25,8 +25,10 @@ public class BuildModeController : MonoBehaviour {
 
 	void Start() {
 		// Get Spaceship to cache if it exists
-		if (GameObject.FindWithTag("Spaceship/Main"))
+		if (GameObject.FindWithTag("Spaceship/Main")) {
 			playerSpaceship = GameObject.FindWithTag("Spaceship/Main");
+			playerSpaceship_Grid = playerSpaceship.transform.Find("Grids").gameObject;
+		}
 
 		// Check for existing Spaceship
 		if (playerSpaceship != null) {
@@ -39,22 +41,17 @@ public class BuildModeController : MonoBehaviour {
 			playerSpaceship.transform.position = Vector3.zero;
 			playerSpaceship.transform.rotation = Quaternion.Euler(Vector3.zero);
 			// grids position reset
-			playerSpaceship.transform.Find("Grids").transform.position = Vector3.zero;
-			playerSpaceship.transform.Find("Grids").transform.rotation = Quaternion.Euler(Vector3.zero);
+			playerSpaceship_Grid.transform.position = Vector3.zero;
+			playerSpaceship_Grid.transform.rotation = Quaternion.Euler(Vector3.zero);
 			// rename the ship again (required for renaming field, otherwise field left empty)
 			RenameShip(playerSpaceship.name);
 		}
 		// If playerSpaceship is null (meaning there isn't any existing ships in the scene), create a new Spaceship
 		else {
-			// creates a new spaceship
-			var constructionPrefab = (GameObject)Resources.Load("Prefabs/Player/Spaceship", typeof(GameObject));
-			playerSpaceship = (GameObject)Instantiate(constructionPrefab, transform.position, transform.rotation);
-			// required because name is set to "... (Clone)" due to instantiation
-			RenameShip("Untitled Ship");
+			NewShip();
 		}
 		
 		// Get Spaceship/Grid to cache
-		playerSpaceship_Grid = playerSpaceship.transform.Find("Grids").gameObject;
 
 		// COLLIDER TRIGGER SWITCH
 		BoxCollider[] blockColliders = playerSpaceship_Grid.GetComponentsInChildren<BoxCollider>();
@@ -244,7 +241,9 @@ public class BuildModeController : MonoBehaviour {
 				if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Component) {
 					// Play placement sound
 					GetComponent<SFX_BuildMode>().placeBlockSFX();
-					// Place block
+					// Place block (with x-z axis position and rotation rounding)
+					placePos = new Vector3(Mathf.Round(placePos.x), placePos.y, Mathf.Round(placePos.z));
+					placeRot = new Quaternion(Mathf.Round(placeRot.x), Mathf.Round(placeRot.y), Mathf.Round(placeRot.z), placeRot.w);
 					var newBlock = (GameObject) Instantiate(selBlock, placePos, placeRot);
 					newBlock.transform.parent = playerSpaceship_Grid.transform;
 				}
@@ -265,7 +264,9 @@ public class BuildModeController : MonoBehaviour {
 			if (_selectedBlock.GetComponent<Block>().blockType != BlockType.Component) {
 				// Play placement sound
 				GetComponent<SFX_BuildMode>().placeBlockSFX();
-				// Place block
+				// Place block (with x-z axis position and rotation rounding)
+				placePos = new Vector3(Mathf.Round(placePos.x), placePos.y, Mathf.Round(placePos.z));
+				placeRot = new Quaternion(Mathf.Round(placeRot.x), Mathf.Round(placeRot.y), Mathf.Round(placeRot.z), placeRot.w);
 				var newBlock = (GameObject) Instantiate(selBlock, placePos, placeRot);
 				newBlock.transform.parent = playerSpaceship_Grid.transform;
 			}
@@ -316,23 +317,33 @@ public class BuildModeController : MonoBehaviour {
 	public bool GridIntegrityCheck(GameObject block) {
 
 		bool result = true;
-		
-		List<GameObject> adjacentGrids = new List<GameObject>();
-		Collider[] mainArray = playerSpaceship_Grid.GetComponentsInChildren<Collider>();
 
-//		tempArray.Add(block.transform.gameObject);
+		int layerMask = 1 << 10;
+
+		List<GameObject> adjacentGrids = new List<GameObject>();
+		List<Collider> mainArray = new List<Collider>();
+
+		// Get all grids
+		var allGrids = playerSpaceship_Grid.GetComponentsInChildren<Collider>();
+		// Only select structure blocks by their layer from allGrids
+		foreach (Collider go in allGrids) {
+			if (go.gameObject.layer.Equals(10))
+				mainArray.Add(go);
+		}
+
+		//		tempArray.Add(block.transform.gameObject);
 
 		// Starting block adjacent grids check
-		if (Physics.Raycast(block.transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 15)) {
+		if (Physics.Raycast(block.transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 15, layerMask)) {
 			adjacentGrids.Add(rayHit.collider.gameObject);
 		}
-		if (Physics.Raycast(block.transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 15)) {
+		if (Physics.Raycast(block.transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 15, layerMask)) {
 			adjacentGrids.Add(rayHit.collider.gameObject);
 		}
-		if (Physics.Raycast(block.transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 15)) {
+		if (Physics.Raycast(block.transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 15, layerMask)) {
 			adjacentGrids.Add(rayHit.collider.gameObject);
 		}
-		if (Physics.Raycast(block.transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 15)) {
+		if (Physics.Raycast(block.transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 15, layerMask)) {
 			adjacentGrids.Add(rayHit.collider.gameObject);
 		}
 
@@ -355,16 +366,16 @@ public class BuildModeController : MonoBehaviour {
 					// only check this block's neighbour grids if it hasn't been checked before (via Collider.enabled)
 					if (tempGrids[i].GetComponent<Collider>().enabled) {
 
-						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 15)) {
+						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(0, 10, -1), Vector3.down, out rayHit, 15, layerMask)) {
 							tempGrids.Add(rayHit.collider.gameObject);
 						}
-						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 15)) {
+						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(0, 10, 1), Vector3.down, out rayHit, 15, layerMask)) {
 							tempGrids.Add(rayHit.collider.gameObject);
 						}
-						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 15)) {
+						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(-1, 10, 0), Vector3.down, out rayHit, 15, layerMask)) {
 							tempGrids.Add(rayHit.collider.gameObject);
 						}
-						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 15)) {
+						if (Physics.Raycast(tempGrids[i].transform.position + new Vector3(1, 10, 0), Vector3.down, out rayHit, 15, layerMask)) {
 							tempGrids.Add(rayHit.collider.gameObject);
 						}
 
@@ -393,8 +404,23 @@ public class BuildModeController : MonoBehaviour {
 
 	}
 
+	public void NewShip() {
+		// Get spaceship prefab
+		var constructionPrefab = (GameObject)Resources.Load("Prefabs/Player/Spaceship", typeof(GameObject));
+		// Create, and cache a new spaceship
+		playerSpaceship = (GameObject)Instantiate(constructionPrefab, transform.position, transform.rotation);
+		// Cache spaceship's grid
+		playerSpaceship_Grid = playerSpaceship.transform.Find("Grids").gameObject;
+		// Required because name is set to "... (Clone)" due to instantiation
+		RenameShip("Untitled Ship");
+		// Place initial block
+		var initialBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull", typeof(GameObject));
+		var newBlock = (GameObject)Instantiate(initialBlock, Vector3.zero, initialBlock.transform.rotation);
+		newBlock.transform.parent = playerSpaceship_Grid.transform;
+	}
+
 	public void ResetShip() {
-		// Get each child object under Spaceship/Grids
+		// Get each block under Spaceship/Grids
 		var grids = GameObject.FindWithTag("Spaceship/Grids");
 		Block[] blocks = grids.GetComponentsInChildren<Block>();
 
@@ -424,9 +450,9 @@ public class BuildModeController : MonoBehaviour {
 			// Write block information
 			lines.Add("<" + b.blockType.ToString().ToLower() + ">");
 			lines.Add(b.blockName);
-			lines.Add(Mathf.Round(b.gameObject.transform.position.x).ToString()); // Mathf.Round is required for precise block placement
+			lines.Add(Mathf.RoundToInt(b.gameObject.transform.position.x).ToString()); // Mathf.Round is required for precise block placement
 			lines.Add((b.gameObject.transform.position.y).ToString()); // Raw placement required for unique block positions (y-axis only)
-			lines.Add(Mathf.Round(b.gameObject.transform.position.z).ToString()); // Mathf.Round is required for precise block placement
+			lines.Add(Mathf.RoundToInt(b.gameObject.transform.position.z).ToString()); // Mathf.Round is required for precise block placement
 			lines.Add("");	// for line seperation
 		}
 		// WriteAllLines creates a file, writes a collection of strings to the file,
