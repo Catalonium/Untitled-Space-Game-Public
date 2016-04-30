@@ -17,7 +17,7 @@ public class BuildModeController : MonoBehaviour {
 	
 	private Ray ray;
 	private RaycastHit rayHit;
-	private Vector3 placementPos;
+	private Vector3 placementPos, rayVectorRnd;
 	private int gridSize = 1;
 //	private bool moveBlock;
 
@@ -87,7 +87,8 @@ public class BuildModeController : MonoBehaviour {
 			// Ray position
 			ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 			// Mouse pointer position (block placement)
-			placementPos = new Vector3(Mathf.Round(ray.origin.x) * gridSize, _selectedBlock.transform.position.y, Mathf.Round(ray.origin.z) * gridSize);
+			placementPos = new Vector3(Mathf.Round(ray.origin.x) * gridSize, _selectedBlock.transform.position.y,
+				Mathf.Round(ray.origin.z) * gridSize);
 			// Mouse cursor position offset
 			_cursorBlock.transform.position = placementPos + new Vector3(0, 5, 0);
 
@@ -116,7 +117,6 @@ public class BuildModeController : MonoBehaviour {
 
 			// BUILD MODE
 
-
 			// Disable cursor if it's activated
 			//			if (_cursorBlock.activeSelf)
 			//				_cursorBlock.SetActive(false);
@@ -128,13 +128,14 @@ public class BuildModeController : MonoBehaviour {
 			//			}
 
 
-
+			// Rounding x-z axis' of ray vector for catching non-placeable positions issue
+			rayVectorRnd = new Vector3(Mathf.Round(ray.origin.x), ray.origin.y, Mathf.Round(ray.origin.z));
 			// Holographic cursor block logic
-			if (Physics.Raycast(ray.origin + new Vector3(0, 0, -1), ray.direction, out rayHit, 15) ||
-				Physics.Raycast(ray.origin + new Vector3(0, 0, 1), ray.direction, out rayHit, 15) ||
-				Physics.Raycast(ray.origin + new Vector3(-1, 0, 0), ray.direction, out rayHit, 15) ||
-				Physics.Raycast(ray.origin + new Vector3(1, 0, 0), ray.direction, out rayHit, 15) ||
-				Physics.Raycast(ray.origin + new Vector3(0, 0, 0), ray.direction, out rayHit, 15) ||
+			if (Physics.Raycast(rayVectorRnd + new Vector3(0, 0, -1), ray.direction, out rayHit, 15) ||
+				Physics.Raycast(rayVectorRnd + new Vector3(0, 0, 1), ray.direction, out rayHit, 15) ||
+				Physics.Raycast(rayVectorRnd + new Vector3(-1, 0, 0), ray.direction, out rayHit, 15) ||
+				Physics.Raycast(rayVectorRnd + new Vector3(1, 0, 0), ray.direction, out rayHit, 15) ||
+				Physics.Raycast(rayVectorRnd + new Vector3(0, 0, 0), ray.direction, out rayHit, 15) ||
 				playerSpaceship_Grid.GetComponentsInChildren<Block>().Length == 0) {
 
 				// Activate cursor if it's disabled
@@ -143,12 +144,12 @@ public class BuildModeController : MonoBehaviour {
 				}
 
 				// Raycast block detection for Info panels and Holocursor
-				if (Physics.Raycast(ray.origin, ray.direction, out rayHit, 15)) {
+				if (Physics.Raycast(rayVectorRnd, ray.direction, out rayHit, 15)) {
 					// Call Info panel function if mouse ray collides with a block
 					RefreshInfoPanel();
 					// If the selected block can be placed, blue cursor 
 					if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Component &&
-					    rayHit.collider.gameObject.GetComponent<Block>().structureType == StructureType.Interior) {
+						rayHit.collider.gameObject.GetComponent<Block>().structureType == StructureType.Interior) {
 						_cursorBlock.GetComponent<Renderer>().material = _cursorMatBlue;
 					}
 					// Else, red cursor
@@ -185,7 +186,6 @@ public class BuildModeController : MonoBehaviour {
 			else _cursorBlock.SetActive(false);
 
 
-
 			// Hotkeys for block selection
 			if (Input.GetKeyDown("1"))
 				BlockSelection(1);
@@ -199,7 +199,7 @@ public class BuildModeController : MonoBehaviour {
 				BlockSelection(5);
 			if (Input.GetKeyDown("6"))
 				BlockSelection(6);
-
+		
 		}
 
 	}
@@ -221,7 +221,7 @@ public class BuildModeController : MonoBehaviour {
 			Camera.main.transform.position = cam;
 		}
 		// Camera zoom
-		else if (Input.GetAxis("Mouse ScrollWheel") > 0 && Camera.main.orthographicSize > 3) {
+		else if (Input.GetAxis("Mouse ScrollWheel") > 0 && Camera.main.orthographicSize > 5) {
 			Camera.main.orthographicSize--;
 		}
 		else if (Input.GetAxis("Mouse ScrollWheel") < 0 && Camera.main.orthographicSize < 25) {
@@ -236,7 +236,7 @@ public class BuildModeController : MonoBehaviour {
 
 	public void PlaceBlock(GameObject selBlock, Vector3 placePos, Quaternion placeRot, Ray ray) {
 		// If mouse ray collides with a block
-		if (Physics.Raycast(ray.origin, ray.direction, out rayHit, 15)) {
+		if (Physics.Raycast(rayVectorRnd, ray.direction, out rayHit, 15)) {
 			if (rayHit.collider.gameObject.GetComponent<Block>().structureType == StructureType.Interior) {
 				if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Component) {
 					// Play placement sound
@@ -249,13 +249,13 @@ public class BuildModeController : MonoBehaviour {
 				}
 				// Play error sound & show error popup
 				else {
-					mpc.ShowErrorPopup("Only Component blocks can be placed onto Interior blocks.");
+					mpc.ShowNotificationPopup("Only Component blocks can be placed onto Interior blocks.");
 					GetComponent<SFX_BuildMode>().errorBlockSFX();
 				}
 			}
 			// Play error sound & show error popup
 			else {
-				mpc.ShowErrorPopup("Cannot place - invalid position.");
+				mpc.ShowNotificationPopup("Cannot place - invalid position.");
 				GetComponent<SFX_BuildMode>().errorBlockSFX();
 			}
 		}
@@ -272,7 +272,7 @@ public class BuildModeController : MonoBehaviour {
 			}
 			// Play error sound & show error popup
 			else {
-				mpc.ShowErrorPopup("Component blocks can only be placed onto Interior blocks.");
+				mpc.ShowNotificationPopup("Component blocks can only be placed onto Interior blocks.");
 				GetComponent<SFX_BuildMode>().errorBlockSFX();
 			}
 		}
@@ -280,7 +280,7 @@ public class BuildModeController : MonoBehaviour {
 
 	public void DeleteBlock(Ray ray) {
 		// If mouse ray collides with a block
-		if (Physics.Raycast(ray.origin, ray.direction, out rayHit, 15)) {
+		if (Physics.Raycast(rayVectorRnd, ray.direction, out rayHit, 15)) {
 
 			var blockToDel = rayHit.collider.gameObject;
 
@@ -295,7 +295,7 @@ public class BuildModeController : MonoBehaviour {
 				}
 				else {
 					// Play error sound & show error popup
-					mpc.ShowErrorPopup("Cannot delete block - grid seperation detected.");
+					mpc.ShowNotificationPopup("Cannot delete block - grid seperation detected.");
 					GetComponent<SFX_BuildMode>().errorBlockSFX();
 				}
 			}
@@ -309,7 +309,7 @@ public class BuildModeController : MonoBehaviour {
 		}
 		else {
 			// Play error sound & show error popup
-			mpc.ShowErrorPopup("There's no block to delete.");
+			mpc.ShowNotificationPopup("There's no block to delete.");
 			GetComponent<SFX_BuildMode>().errorBlockSFX();
 		}
 	}

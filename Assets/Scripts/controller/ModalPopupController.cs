@@ -10,11 +10,11 @@ public class ModalPopupController : MonoBehaviour {
 	private SpaceshipStats ss;
 	private GameObject spaceshipGrid;
 
-	private CanvasGroup modalPopupCanvas, errorPopupCanvas;
-	private Text question, error;
+	private CanvasGroup modalPopupCanvas, notificationPopupCanvas;
+	private Text question, notification;
 
 	private string commandType;
-	private float errorDuration;
+	private float notificationDuration;
 
 	public Button gameplayModeButton;
 
@@ -33,30 +33,30 @@ public class ModalPopupController : MonoBehaviour {
 		question.text = "";
 
 		// Error popup initialization
-		errorPopupCanvas = GameObject.FindGameObjectWithTag("GUI/ErrorPanel/Main").GetComponent<CanvasGroup>();
-		errorPopupCanvas.alpha = 0;
-		error = GameObject.FindGameObjectWithTag("GUI/ErrorPanel/Text").GetComponent<Text>();
-		error.text = "";
+		notificationPopupCanvas = GameObject.FindGameObjectWithTag("GUI/ErrorPanel/Main").GetComponent<CanvasGroup>();
+		notificationPopupCanvas.alpha = 0;
+		notification = GameObject.FindGameObjectWithTag("GUI/ErrorPanel/Text").GetComponent<Text>();
+		notification.text = "";
 
 		// Other initializations
 		commandType = "";
-		errorDuration = 1f;
+		notificationDuration = 1f;
 		isErrorFadeOutActive = false;
 	}
 
 	void Update() {
 		// Error popup fade-out effect
 		if (isErrorFadeOutActive) {
-			if (errorDuration > 0) {
-				errorDuration -= Time.deltaTime;
+			if (notificationDuration > 0) {
+				notificationDuration -= Time.deltaTime;
 			}
 			else {
-				if (errorPopupCanvas.alpha > 0.01f)
-					errorPopupCanvas.alpha -= Time.deltaTime;
+				if (notificationPopupCanvas.alpha > 0.01f)
+					notificationPopupCanvas.alpha -= Time.deltaTime;
 				else {
-					errorPopupCanvas.alpha = 0f;
+					notificationPopupCanvas.alpha = 0f;
 					isErrorFadeOutActive = false;
-					error.text = "";
+					notification.text = "";
 				}
 			}
 		}
@@ -106,26 +106,28 @@ public class ModalPopupController : MonoBehaviour {
 			ShowModalPopup();
 		}
 		else {
-			ShowErrorPopup("Error - no save file found.");
+			ShowNotificationPopup("Error - no save file found.");
 		}
 	}
 
 	public void ResponseYes() {
 		if (commandType.Equals("overwrite") || commandType.Equals("save")) {
 			bmc.SaveShip();
+			ShowNotificationPopup("Spaceship saved.");
 		}
 		else if (commandType.Equals("load")) {
 			bmc.LoadShip();
+			ShowNotificationPopup("Spaceship loaded.");
 		}
 		else if (commandType.Equals("gameplay")) {
 			sc.ChangeScene("GameplayMode");
 		}
 		else if (commandType.Equals("resetship")) {
 			bmc.ResetShip();
-			ShowErrorPopup("Spaceship reset.");
+			ShowNotificationPopup("Spaceship reset.");
 		}
 		else {
-			ShowErrorPopup("An unknown error occured.\nNo known commandType assigned in ModalPopupController.cs");
+			ShowNotificationPopup("An unknown error occured.\nNo known commandType assigned in ModalPopupController.cs");
 		}
 		// Clear the cache since the command is executed at this point
 		ClearModalPopup();
@@ -165,10 +167,10 @@ public class ModalPopupController : MonoBehaviour {
 	public bool isModalPopupActive { get; private set; }
 	public bool isErrorFadeOutActive { get; private set; }
 
-	public void ShowErrorPopup(string e) {
-		error.text = e;
-		errorPopupCanvas.alpha = 1;
-		errorDuration = 1f;
+	public void ShowNotificationPopup(string nText, float nDuration = 1f) {
+		notification.text = nText;
+		notificationPopupCanvas.alpha = 1;
+		notificationDuration= nDuration;
 		isErrorFadeOutActive = true;
 	}
 }
