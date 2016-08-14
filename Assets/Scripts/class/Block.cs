@@ -10,14 +10,15 @@ public enum ComponentType {
 	None, Thruster, Gyroscope, Reactor, Bridge
 }
 
-[System.Serializable]	// This actually allows this class to hold its values that varies between prefabs (building blocks) caused by custom inspector/editor
+[System.Serializable]   // This actually allows this class to hold its values 
+// that varies between prefabs (building blocks) caused by custom inspector/editor
 public class Block : MonoBehaviour {
 
 	public BlockType blockType;
 	public StructureType structureType;
 	public ComponentType componentType;
 
-//	public bool[] mountPos = {true, true, true, true};
+	public bool[] mountPoint = {true, true, true, true};
 	public string blockName;
 	public float hull, mass, energyGen, energyCon, maneuver, thrust;
 
