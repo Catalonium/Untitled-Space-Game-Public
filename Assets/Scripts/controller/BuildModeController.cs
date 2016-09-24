@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 //	TODO: Clean-up the code
@@ -10,19 +12,23 @@ using UnityEngine.UI;
 
 public class BuildModeController : MonoBehaviour {
 
-	private GameObject playerSpaceship, playerSpaceship_Grids, playerSpaceship_BuildableGrids;
-	private GameObject _cursorBlock, _cursorRefBlock, _selectedBlock, _buildableGridBlock;
+	private GameObject playerSpaceship, playerSpaceship_Grids;
+	private GameObject _cursorBlock, _cursorRefBlock, _cursorRefBlockMesh, _selectedBlock;
 	private GameObject _infoPanel;
 
 	private Material _cursorMatBlue, _cursorMatRed;
-	
+
+	private GridCollisionDetector[] blockOrientationGrids;
+
 	private Ray ray;
 	private RaycastHit rayHit;
 	private Vector3 placementPos, rayVectorRnd;
 	private Quaternion placementRot;
+	private float degreesOfRot;
+
 	private int gridSize = 1;
-	private float rotOrientation = 0;
-//	private bool moveBlock;
+
+	//	private bool moveBlock;
 
 	private ModalPopupController mpc;
 
@@ -34,7 +40,7 @@ public class BuildModeController : MonoBehaviour {
 		if (GameObject.FindWithTag("Spaceship/Main")) {
 			playerSpaceship = GameObject.FindWithTag("Spaceship/Main");
 			playerSpaceship_Grids = playerSpaceship.transform.Find("Grids").gameObject;
-			playerSpaceship_BuildableGrids = playerSpaceship.transform.Find("BuildableGrids").gameObject;
+//			playerSpaceship_BuildableGrids = playerSpaceship.transform.Find("BuildableGrids").gameObject;
 		}
 
 		// Check for existing Spaceship
@@ -65,23 +71,24 @@ public class BuildModeController : MonoBehaviour {
 		foreach (BoxCollider bc in blockColliders) {
 			bc.isTrigger = true;
 		}
-
-		// Selected block initialization
-		_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull_Bulk", typeof(GameObject));
-
+		
 		// Holocursor initialization
 		var holoBlock = (GameObject)Resources.Load("Prefabs/Holo/HolocursorBlock", typeof(GameObject));
 		_cursorBlock = (GameObject)Instantiate(holoBlock, transform.position, transform.rotation);
-		_cursorBlock.SetActive(false);
-		// Holocursor reference block procedure
-		RefreshHolocursor();
+		_cursorBlock.GetComponent<Renderer>().enabled = false;
+//		// Holocursor reference block procedure
+//		RefreshHolocursorRef();
 
 		// Holocursor Materials initialization
 		_cursorMatBlue = (Material)Resources.Load("Materials/Blocks/Holo/Holo-Blue", typeof(Material));
 		_cursorMatRed = (Material)Resources.Load("Materials/Blocks/Holo/Holo-Red", typeof(Material));
 
-		// Get BuildableGridBlock prefab
-		_buildableGridBlock = (GameObject)Resources.Load("Prefabs/Holo/BuildableGridBlock", typeof(GameObject));
+		// Selected block initialization
+//		_selectedBlock = (GameObject)Resources.Load("Prefabs/Building Blocks/Block-Hull_Bulk", typeof(GameObject));
+		BlockSelection(1);
+
+//		// Get BuildableGridBlock prefab
+//		_buildableGridBlock = (GameObject)Resources.Load("Prefabs/Holo/BuildableGridBlock", typeof(GameObject));
 
 		// Get ModalPanel to cache
 		mpc = GetComponent<ModalPopupController>();
@@ -95,125 +102,253 @@ public class BuildModeController : MonoBehaviour {
 	void Update() {
 
 		// Only run building logic if a ModalPanel is NOT opened
-		if (!mpc.isModalPopupActive) {
+		if (!mpc.isModalPopupActive && !EventSystem.current.IsPointerOverGameObject()) {
 
 			// Ray position
 			ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
 			// Mouse pointer position (block placement)
 			placementPos = new Vector3(Mathf.Round(ray.origin.x) * gridSize, _selectedBlock.transform.position.y,
 				Mathf.Round(ray.origin.z) * gridSize);
+
 			// Mouse cursor position offset
 			_cursorBlock.transform.position = placementPos + new Vector3(0, 10, 0);
 
-			/* GITHUB ISSUE SOLUTION #10: Movement Disabled
-
-		// MOVEMENT MODE
-		if (moveBlock) {
-
-			// Constant movement position update
-			if (!Physics.Raycast(ray, out rayHit, 10f))
-				_movedBlockRef.transform.position = new Vector3(placementPos.x, -5, placementPos.z);
-			// Confirm block movement
-			if (Input.GetMouseButtonDown(0)) {
-				_movedBlockRef.transform.position = new Vector3(_movedBlockRef.transform.position.x, 0, _movedBlockRef.transform.position.z);
-				_movedBlockRef = null; // Clear memory
-				moveBlock = false;
-			}
-			// Cancel block movement
-			else if (Input.GetMouseButtonDown(1)) {
-				_movedBlockRef.transform.position = oldPos;
-				_movedBlockRef = null; // Clear memory
-				moveBlock = false;
-			}
-		}
-		GITHUB ISSUE SOLUTION #10: Movement Disabled */
-
-			// BUILD MODE
-
-			// Disable cursor if it's activated
-			//			if (_cursorBlock.activeSelf)
-			//				_cursorBlock.SetActive(false);
-			// Move block toggle
-			//			if (Input.GetMouseButtonDown(0)) {
-			//				_movedBlockRef = rayHit.collider.gameObject;
-			//				oldPos = _movedBlockRef.transform.position;
-			//				moveBlock = true;
-			//			}
-
-
 			// Rounding x-z axis' of ray vector for catching non-placeable positions issue
 			rayVectorRnd = new Vector3(Mathf.Round(ray.origin.x), ray.origin.y, Mathf.Round(ray.origin.z));
+
 			// Holographic cursor block logic
 			if (Physics.Raycast(rayVectorRnd, ray.direction, out rayHit, 30)) {
-//			if (Physics.Raycast(rayVectorRnd + new Vector3(0, 0, -1), ray.direction, out rayHit, 30) ||
-//			    Physics.Raycast(rayVectorRnd + new Vector3(0, 0, 1), ray.direction, out rayHit, 30) ||
-//			    Physics.Raycast(rayVectorRnd + new Vector3(-1, 0, 0), ray.direction, out rayHit, 30) ||
-//			    Physics.Raycast(rayVectorRnd + new Vector3(1, 0, 0), ray.direction, out rayHit, 30) ||
-//			    Physics.Raycast(rayVectorRnd + new Vector3(0, 0, 0), ray.direction, out rayHit, 30) ||
-//			    playerSpaceship_Grids.GetComponentsInChildren<Block>().Length == 0) {
-
-				// Activate cursor if it's disabled
-				if (!_cursorBlock.activeSelf) {
-					_cursorBlock.SetActive(true);
-				}
 
 				// ---
-				if (rayHit.collider.gameObject.tag.Equals("Game/HoloBuildableGrid")) {
-
-					// Clear InfoPanel
-					ClearInfoPanel();
-
-					// If selected block is a structure block, blue cursor 
-					if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Structure) {
-						_cursorBlock.GetComponent<Renderer>().material = _cursorMatBlue;
-						_cursorRefBlock.SetActive(true);
-					}
-					// Else, red cursor
-					else {
-						_cursorBlock.GetComponent<Renderer>().material = _cursorMatRed;
-						_cursorRefBlock.SetActive(false);
-					}
-
-				}
-				else if (rayHit.collider.gameObject.tag.Equals("Spaceship/Block")) {
+				if (rayHit.collider.gameObject.tag.Equals("Spaceship/Block")) {
 
 					// Call Info panel function if mouse ray collides with an actual block
 					RefreshInfoPanel();
 
-					// If the selected block can be placed, blue cursor 
-					if (rayHit.collider.gameObject.GetComponent<Block>().structureType == StructureType.Interior &&
-					    _selectedBlock.GetComponent<Block>().blockType == BlockType.Component) {
+					// If interior block is hovered 
+					if (rayHit.collider.gameObject.GetComponent<Block>().structureType == StructureType.Interior) {
 
-						_cursorBlock.GetComponent<Renderer>().material = _cursorMatBlue;
-						_cursorRefBlock.SetActive(true);
+						// If selected block is component
+						if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Component) {
+
+							_cursorBlock.GetComponent<Renderer>().material = _cursorMatBlue;
+							// Activate cursor if it's disabled
+							if (!_cursorBlock.GetComponent<Renderer>().enabled)
+								_cursorBlock.GetComponent<Renderer>().enabled = true;
+							// Activate cursor reference block
+							_cursorRefBlockMesh.SetActive(true);
+
+							// PLACE block
+							if (Input.GetMouseButtonDown(0)) {
+								// Block placement function call
+								PlaceBlock(_selectedBlock, placementPos, placementRot, rayHit);
+							}
+
+						}
+						// In case of other than component blocks selected
+						else {
+
+							_cursorBlock.GetComponent<Renderer>().material = _cursorMatRed;
+							// Activate cursor if it's disabled
+							if (!_cursorBlock.GetComponent<Renderer>().enabled)
+								_cursorBlock.GetComponent<Renderer>().enabled = true;
+							// Deactivate cursor reference block
+							_cursorRefBlockMesh.SetActive(false);
+
+							// PLACE block
+							if (Input.GetMouseButtonDown(0)) {
+								// Play error sound & show error popup
+								mpc.ShowNotificationPopup("Only Component blocks can be placed onto Interior blocks.");
+								GetComponent<SFX_BuildMode>().errorBlockSFX();
+							}
+
+						}
 
 					}
-					// Else, red cursor
+					// In case of other than interior blocks hovered
 					else {
+
 						_cursorBlock.GetComponent<Renderer>().material = _cursorMatRed;
-						_cursorRefBlock.SetActive(false);
+						// Activate cursor if it's disabled
+						if (!_cursorBlock.GetComponent<Renderer>().enabled)
+							_cursorBlock.GetComponent<Renderer>().enabled = true;
+						// Deactivate cursor reference block
+						_cursorRefBlockMesh.SetActive(false);
+
+						// PLACE block
+						if (Input.GetMouseButtonDown(0)) {
+							// Play error sound & show error popup
+							mpc.ShowNotificationPopup("Cannot place - there's another block in the way.");
+							GetComponent<SFX_BuildMode>().errorBlockSFX();
+						}
+
+					}
+
+					// DELETE block
+					if (Input.GetMouseButtonDown(1)) {
+						// Block deletion function call
+						DeleteBlock(rayHit);
+					}
+
+				}
+				else if (rayHit.collider.gameObject.tag.Equals("Spaceship/OrientationGrid")) {
+
+					// If selected block is a structure block, blue cursor 
+					if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Structure) {
+
+						// Orientation grid check
+						if (_selectedBlock.GetComponent<Block>().isRotateable) {
+
+							if (BlockOrientationChecker()) {
+
+								_cursorBlock.GetComponent<Renderer>().material = _cursorMatBlue;
+								// Activate cursor if it's disabled
+								if (!_cursorBlock.GetComponent<Renderer>().enabled)
+									_cursorBlock.GetComponent<Renderer>().enabled = true;
+								// Activate cursor reference block
+								_cursorRefBlockMesh.SetActive(true);
+
+								// PLACE block
+								if (Input.GetMouseButtonDown(0)) {
+									// Block placement function call
+									PlaceBlock(_selectedBlock, placementPos, placementRot, rayHit);
+								}
+
+							}
+							else {
+
+								_cursorBlock.GetComponent<Renderer>().material = _cursorMatRed;
+								// Activate cursor if it's disabled
+								if (!_cursorBlock.GetComponent<Renderer>().enabled)
+									_cursorBlock.GetComponent<Renderer>().enabled = true;
+								// Activate cursor reference block
+								_cursorRefBlockMesh.SetActive(true);
+
+								// PLACE block
+								if (Input.GetMouseButtonDown(0)) {
+									// Play error sound & show error popup
+									mpc.ShowNotificationPopup("Cannot place this block with current orientation.");
+									GetComponent<SFX_BuildMode>().errorBlockSFX();
+								}
+
+							}
+
+						}
+						else {
+
+							_cursorBlock.GetComponent<Renderer>().material = _cursorMatBlue;
+							// Activate cursor if it's disabled
+							if (!_cursorBlock.GetComponent<Renderer>().enabled)
+								_cursorBlock.GetComponent<Renderer>().enabled = true;
+							// Activate cursor reference block
+							_cursorRefBlockMesh.SetActive(true);
+
+							// PLACE block
+							if (Input.GetMouseButtonDown(0)) {
+								// Block placement function call
+								PlaceBlock(_selectedBlock, placementPos, placementRot, rayHit);
+							}
+
+						}
+
+					}
+					// Else (other than structure block selected), red cursor
+					else {
+
+						_cursorBlock.GetComponent<Renderer>().material = _cursorMatRed;
+						// Activate cursor if it's disabled
+						if (!_cursorBlock.GetComponent<Renderer>().enabled)
+							_cursorBlock.GetComponent<Renderer>().enabled = true;
+						// Activate cursor reference block
+						_cursorRefBlockMesh.SetActive(true);
+
+						// PLACE block
+						if (Input.GetMouseButtonDown(0)) {
+							// Play error sound & show error popup
+							mpc.ShowNotificationPopup("Component blocks can only be placed onto Interior blocks.");
+							GetComponent<SFX_BuildMode>().errorBlockSFX();
+						}
+
+					}
+
+				}
+				// Red cursor w/ref block
+				else {
+
+					// Clear InfoPanel
+					ClearInfoPanel();
+
+					_cursorBlock.GetComponent<Renderer>().material = _cursorMatRed;
+					// Activate cursor if it's disabled
+					if (!_cursorBlock.GetComponent<Renderer>().enabled)
+						_cursorBlock.GetComponent<Renderer>().enabled = true;
+					// Activate cursor reference block
+					_cursorRefBlockMesh.SetActive(true);
+
+					// PLACE block
+					if (Input.GetMouseButtonDown(0)) {
+						// Play error sound & show error popup
+						mpc.ShowNotificationPopup("Cannot place - invalid position.");
+						GetComponent<SFX_BuildMode>().errorBlockSFX();
 					}
 
 				}
 
-				// Place block
-				if (Input.GetMouseButtonDown(0)) {
-					// Block placement function call
-					PlaceBlock(_selectedBlock, placementPos, placementRot, rayHit);
+			}
+			else if (playerSpaceship_Grids.GetComponentsInChildren<Block>().Length == 0) {
+
+				if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Structure) {
+
+					_cursorBlock.GetComponent<Renderer>().material = _cursorMatBlue;
+					// Activate cursor if it's disabled
+					if (!_cursorBlock.GetComponent<Renderer>().enabled)
+						_cursorBlock.GetComponent<Renderer>().enabled = true;
+					// Activate cursor reference block
+					_cursorRefBlockMesh.SetActive(true);
+
+					// PLACE block
+					if (Input.GetMouseButtonDown(0)) {
+						// Block placement function call
+						PlaceBlock(_selectedBlock, placementPos, placementRot, rayHit);
+					}
+
 				}
-				// Delete block
-				if (Input.GetMouseButtonDown(1)) {
-					// Block deletion function call
-					DeleteBlock(rayHit);
+				else {
+
+					// Clear InfoPanel
+					ClearInfoPanel();
+
+					_cursorBlock.GetComponent<Renderer>().material = _cursorMatRed;
+					// Activate cursor if it's disabled
+					if (!_cursorBlock.GetComponent<Renderer>().enabled)
+						_cursorBlock.GetComponent<Renderer>().enabled = true;
+					// Activate cursor reference block
+					_cursorRefBlockMesh.SetActive(true);
+
+					// PLACE block
+					if (Input.GetMouseButtonDown(0)) {
+						// Play error sound & show error popup
+						mpc.ShowNotificationPopup("A component block should be placed onto existing Interior blocks.");
+						GetComponent<SFX_BuildMode>().errorBlockSFX();
+					}
+
 				}
 
 			}
 			else {
-				// Clear Info Panel
+
+				// Clear InfoPanel
 				ClearInfoPanel();
-				// Hide cursor
-				_cursorBlock.SetActive(false);
+
+				// Deactivate cursor if it's enabled
+				if (_cursorBlock.GetComponent<Renderer>().enabled)
+					_cursorBlock.GetComponent<Renderer>().enabled = false;
+				// Deactivate cursor reference block
+				_cursorRefBlockMesh.SetActive(false);
+
 			}
+
 
 
 			// Hotkeys for block selection
@@ -234,31 +369,63 @@ public class BuildModeController : MonoBehaviour {
 			if (Input.GetKeyDown("8"))
 				BlockSelection(8);
 
-			// Hotkeys for block rotation
-			if (Input.GetKeyDown(KeyCode.Q)) {
-				if (rotOrientation.Equals(0))
-					rotOrientation = 270;
-				else rotOrientation -= 90;
+			// Hotkeys for block rotation and logic
+			if (_selectedBlock.GetComponent<Block>().isRotateable) {
 
-				placementRot = Quaternion.Euler(transform.rotation.x, Mathf.Round(rotOrientation), transform.rotation.z);
+				placementRot = Quaternion.Euler(transform.rotation.x, Mathf.Round(degreesOfRot), transform.rotation.z);
 				_cursorBlock.transform.rotation = placementRot;
-				mpc.ShowNotificationPopup("Rotation: " + rotOrientation);
-			}
-			if (Input.GetKeyDown(KeyCode.E)) {
-				if (rotOrientation.Equals(270))
-					rotOrientation = 0;
-				else rotOrientation += 90;
 
-				placementRot = Quaternion.Euler(transform.rotation.x, Mathf.Round(rotOrientation), transform.rotation.z);
-				_cursorBlock.transform.rotation = placementRot;
-				mpc.ShowNotificationPopup("Rotation: " + rotOrientation);
+				if (Input.GetKeyDown(KeyCode.Q)) {
+
+					if (degreesOfRot.Equals(0))
+						degreesOfRot = 270;
+					else
+						degreesOfRot -= 90;
+
+					placementRot = Quaternion.Euler(transform.rotation.x, Mathf.Round(degreesOfRot), transform.rotation.z);
+					_cursorBlock.transform.rotation = placementRot;
+					mpc.ShowNotificationPopup("Rotation: " + degreesOfRot);
+
+				}
+				if (Input.GetKeyDown(KeyCode.E)) {
+
+					if (degreesOfRot.Equals(270))
+						degreesOfRot = 0;
+					else
+						degreesOfRot += 90;
+
+					placementRot = Quaternion.Euler(transform.rotation.x, Mathf.Round(degreesOfRot), transform.rotation.z);
+					_cursorBlock.transform.rotation = placementRot;
+					mpc.ShowNotificationPopup("Rotation: " + degreesOfRot);
+
+				}
+
 			}
+			else {
+
+				placementRot = _selectedBlock.transform.rotation;
+				_cursorBlock.transform.rotation = placementRot;
+
+			}
+
+		}
+		else {
+
+			// Clear InfoPanel
+			ClearInfoPanel();
+
+			// Deactivate cursor if it's enabled
+			if (_cursorBlock.GetComponent<Renderer>().enabled)
+				_cursorBlock.GetComponent<Renderer>().enabled = false;
+			// Deactivate cursor reference block
+			_cursorRefBlockMesh.SetActive(false);
 
 		}
 
 	}
 
 	void LateUpdate() {
+
 		// Camera movement
 		if (Input.GetMouseButton(2)) {
 			float mX = Input.GetAxis("Mouse X"); // Smoothed X axis values
@@ -286,84 +453,33 @@ public class BuildModeController : MonoBehaviour {
 			Camera.main.orthographicSize = 15;
 			Camera.main.transform.position = new Vector3(0, 20, 0);
 		}
+
 	}
+	
+	public void PlaceBlock(GameObject selBlock, Vector3 placePos, Quaternion placeRot, RaycastHit rayHit, bool hideGrid = false) {
 
-	public void PlaceBlock(GameObject selBlock, Vector3 placePos, Quaternion placeRot, RaycastHit rayHit) {
+//		if (hideGrid) {
+//			rayHit.collider.GetComponent<Collider>().enabled = false
+//		}
 
-		// If mouse ray collides with BuildableGridBlock
-		if (rayHit.collider.gameObject.tag.Equals("Game/HoloBuildableGrid")) {
-			if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Structure) {
-				// Play placement sound
-				GetComponent<SFX_BuildMode>().placeBlockSFX();
-				// Place block (with x-z axis position and rotation rounding)
-				placePos = new Vector3(Mathf.Round(placePos.x), placePos.y, Mathf.Round(placePos.z));
-				var newBlock = (GameObject)Instantiate(selBlock, placePos, placeRot);
-				newBlock.transform.parent = playerSpaceship_Grids.transform;
-//				// TODO Calculate mounting positions of the grids
-//				BuildableGridOrienter();
-			}
-			// Play error sound & show error popup
-			else {
-				mpc.ShowNotificationPopup("Component blocks can only be placed onto Interior blocks.");
-				GetComponent<SFX_BuildMode>().errorBlockSFX();
-			}
-		}
-		// If mouse ray doesn't collide with BuildableGridBlock
-		else {
-			if (rayHit.collider.gameObject.GetComponent<Block>().structureType == StructureType.Interior) {
-				if (_selectedBlock.GetComponent<Block>().blockType == BlockType.Component) {
-					// Play placement sound
-					GetComponent<SFX_BuildMode>().placeBlockSFX();
-					// Place block (with x-z axis position and rotation rounding)
-					placePos = new Vector3(Mathf.Round(placePos.x), placePos.y, Mathf.Round(placePos.z));
-					var newBlock = (GameObject)Instantiate(selBlock, placePos, placeRot);
-					newBlock.transform.parent = playerSpaceship_Grids.transform;
-				}
-				// Play error sound & show error popup
-				else {
-					mpc.ShowNotificationPopup("Only Component blocks can be placed onto Interior blocks.");
-					GetComponent<SFX_BuildMode>().errorBlockSFX();
-				}
-			}
-			// Play error sound & show error popup
-			else {
-				mpc.ShowNotificationPopup("Cannot place - invalid position.");
-				GetComponent<SFX_BuildMode>().errorBlockSFX();
-			}
-		}
+		// Play placement sound
+		GetComponent<SFX_BuildMode>().placeBlockSFX();
+		// Place block (with x-z axis position and rotation rounding)
+		placePos = new Vector3(Mathf.Round(placePos.x), placePos.y, Mathf.Round(placePos.z));
+		var newBlock = (GameObject) Instantiate(selBlock, placePos, placeRot);
+		newBlock.transform.parent = playerSpaceship_Grids.transform;
 
 	}
 
 	public void DeleteBlock(RaycastHit rayHit) {
+		
+		var blockToDel = rayHit.collider.gameObject;
 
-		if (rayHit.collider.gameObject.tag.Equals("Game/HoloBuildableGrid")) {
-			// Play error sound & show error popup
-			mpc.ShowNotificationPopup("There's no block to delete. This is a placeable position.");
-			GetComponent<SFX_BuildMode>().errorBlockSFX();
-		}
-		else {
+		// If it's a structure block
+		if (blockToDel.GetComponent<Block>().blockType == BlockType.Structure) {
 
-			var blockToDel = rayHit.collider.gameObject;
-
-			// If it's a structure block
-			if (blockToDel.GetComponent<Block>().blockType == BlockType.Structure) {
-				// Grid seperation check
-				if (GridIntegrityCheck(blockToDel)) {
-					// Play remove sound
-					GetComponent<SFX_BuildMode>().removeBlockSFX();
-					// Delete block
-					Destroy(blockToDel);
-//					// TODO Calculate mounting positions of the grids
-//					BuildableGridOrienter();
-				}
-				else {
-					// Play error sound & show error popup
-					mpc.ShowNotificationPopup("Cannot delete block - grid seperation detected.");
-					GetComponent<SFX_BuildMode>().errorBlockSFX();
-				}
-			}
-			// If it's a component block
-			else if (blockToDel.GetComponent<Block>().blockType == BlockType.Component) {
+			// Grid seperation check
+			if (GridIntegrityCheck(blockToDel)) {
 				// Play remove sound
 				GetComponent<SFX_BuildMode>().removeBlockSFX();
 				// Delete block
@@ -371,17 +487,35 @@ public class BuildModeController : MonoBehaviour {
 			}
 			else {
 				// Play error sound & show error popup
-				mpc.ShowNotificationPopup("There's no block to delete.");
+				mpc.ShowNotificationPopup("Cannot delete block - grid seperation detected.");
 				GetComponent<SFX_BuildMode>().errorBlockSFX();
 			}
 
 		}
+		// If it's a component block
+		else if (blockToDel.GetComponent<Block>().blockType == BlockType.Component) {
+
+			// Play remove sound
+			GetComponent<SFX_BuildMode>().removeBlockSFX();
+			// Delete block
+			Destroy(blockToDel);
+
+		}
+		else {
+
+			// Play error sound & show error popup
+			mpc.ShowNotificationPopup("There's no block to delete.");
+			GetComponent<SFX_BuildMode>().errorBlockSFX();
+
+		}
+
 	}
 	
 	public bool GridIntegrityCheck(GameObject block) {
 
 		bool result = true;
 
+		// This layermask allows raycasts to only detect blocks on Block/Structure layer
 		int layerMask = 1 << 10;
 
 		List<GameObject> adjacentGrids = new List<GameObject>();
@@ -468,98 +602,19 @@ public class BuildModeController : MonoBehaviour {
 
 	}
 
-//	public void BuildableGridCleaner() {
-//
-//		// Cache buildable grids
-//		Collider[] buildableGrids = playerSpaceship_BuildableGrids.GetComponentsInChildren<Collider>();
-//
-//		foreach (var grid in buildableGrids) {
-//			Destroy(grid.gameObject);
-//		}
-//
-//	}
+	public bool BlockOrientationChecker() {
 
-//	public void BuildableGridOrienter() {
-//
-//		// Clean buildable grids
-//		BuildableGridCleaner();
-//
-//		// Cache blocks
-//		Block[] grids = playerSpaceship_Grids.GetComponentsInChildren<Block>();
-//
-//		foreach (var block in grids) {
-//
-//			var pos = block.transform.position;
-//			var rot = block.transform.rotation;
-//			var locpos = block.transform.localPosition;
-//			var locrot = block.transform.localRotation;
-//
-//			var locposRnd = new Vector3(Mathf.Round(ray.origin.x), ray.origin.y, Mathf.Round(ray.origin.z));
-//
-//			// Place initial buildable grid
-//			var buildableGridBlk = (GameObject) Instantiate(_buildableGridBlock, pos, rot);
-//			buildableGridBlk.transform.parent = playerSpaceship_BuildableGrids.transform;
-//			buildableGridBlk.GetComponent<Renderer>().enabled = false;
-//
-//			// Mount positions
-//			for (int i = 0; i < block.mountPoint.Length; i++) {
-//
-//				if (block.mountPoint[i]) {
-//
-//					if (i.Equals(0)) { // North
-//						if (!Physics.Raycast(locposRnd + new Vector3(0, 20, 1), ray.direction, out rayHit, 30)) {
-//							var temp = (GameObject)Instantiate(_buildableGridBlock, locpos + new Vector3(0, -5, 1), locrot);
-//							temp.transform.parent = playerSpaceship_BuildableGrids.transform;
-//						}
-//					}
-//					if (i.Equals(1)) { // East
-//						if (!Physics.Raycast(locposRnd + new Vector3(1, 20, 0), ray.direction, out rayHit, 30)) {
-//							var temp = (GameObject)Instantiate(_buildableGridBlock, locpos + new Vector3(1, -5, 0), locrot);
-//							temp.transform.parent = playerSpaceship_BuildableGrids.transform;
-//						}
-//					}
-//					if (i.Equals(2)) { // South
-//						if (!Physics.Raycast(locposRnd + new Vector3(0, 20, -1), ray.direction, out rayHit, 30)) {
-//							var temp = (GameObject)Instantiate(_buildableGridBlock, locpos + new Vector3(0, -5, -1), locrot);
-//							temp.transform.parent = playerSpaceship_BuildableGrids.transform;
-//						}
-//					}
-//					if (i.Equals(3)) { // West
-//						if (!Physics.Raycast(locposRnd + new Vector3(-1, 20, 0), ray.direction, out rayHit, 30)) {
-//							var temp = (GameObject)Instantiate(_buildableGridBlock, locpos + new Vector3(-1, -5, 0), locrot);
-//							temp.transform.parent = playerSpaceship_BuildableGrids.transform;
-//						}
-//					}
-//
-//				}
-//
-//			}
-//
-//		}
-//
-//	}
+		foreach (var grid in blockOrientationGrids) {
 
-//	public void BuildableGridSwitcher() {
-//
-//		if (Physics.Raycast(rayVectorRnd, ray.direction, out rayHit, 30)) {
-//
-//			var go = rayHit.collider.gameObject;
-//
-//			if (go.tag.Equals("Game/HoloBuildableGrid")) {
-//				if (go.GetComponent<Renderer>().enabled)
-//					go.GetComponent<Renderer>().enabled = false;
-//				else go.GetComponent<Renderer>().enabled = true;
-//			}
-//			else Debug.Log("Er..imma retarded.");
-//
-//		}
-//		else {
-//			// Play error sound & show error popup
-//			mpc.ShowNotificationPopup("No buildable grid found to switch.\n" +
-//			                          "ErrCode:001");
-//		}
-//
-//	}
+			if (grid.CollisionState) {
+				return true;
+			}
+
+		}
+
+		return false;
+
+	}
 
 	public void NewShip() {
 		// Get spaceship prefab
@@ -568,34 +623,34 @@ public class BuildModeController : MonoBehaviour {
 		playerSpaceship = (GameObject)Instantiate(constructionPrefab, transform.position, transform.rotation);
 		// Cache spaceship's grid and buildablegrid
 		playerSpaceship_Grids = playerSpaceship.transform.Find("Grids").gameObject;
-		playerSpaceship_BuildableGrids = playerSpaceship.transform.Find("BuildableGrids").gameObject;
+//		playerSpaceship_BuildableGrids = playerSpaceship.transform.Find("BuildableGrids").gameObject;
 		// Required because name is set to "... (Clone)" due to instantiation
 		RenameShip("Untitled Ship");
-		// Place initial buildable grid
-		var initialGrid = (GameObject)Resources.Load("Prefabs/Holo/BuildableGridBlock", typeof(GameObject));
-		var newBlock = (GameObject)Instantiate(initialGrid, Vector3.zero, initialGrid.transform.rotation);
-		newBlock.transform.parent = playerSpaceship_BuildableGrids.transform;
+//		// Place initial buildable grid
+//		var initialGrid = (GameObject)Resources.Load("Prefabs/Holo/BuildableGridBlock", typeof(GameObject));
+//		var newBlock = (GameObject)Instantiate(initialGrid, initialGrid.transform.position, initialGrid.transform.rotation);
+//		newBlock.transform.parent = playerSpaceship_BuildableGrids.transform;
 	}
 
 	public void ResetShip() {
 		// Get each block under Spaceship/Grids
 		Block[] grids = playerSpaceship_Grids.GetComponentsInChildren<Block>();
-		// Get each block under Spaceship/BuildableGrids
-		Collider[] buildableGrids = playerSpaceship_BuildableGrids.GetComponentsInChildren<Collider>();
+//		// Get each block under Spaceship/BuildableGrids
+//		Collider[] buildableGrids = playerSpaceship_BuildableGrids.GetComponentsInChildren<Collider>();
 		
 		// Delete each block one by one
 		foreach (Block block in grids) {
 			Destroy(block.gameObject);
 		}
-		// Delete each buildable grid one by one
-		foreach (Collider grid in buildableGrids) {
-			Destroy(grid.gameObject);
-		}
+//		// Delete each buildable grid one by one
+//		foreach (Collider grid in buildableGrids) {
+//			Destroy(grid.gameObject);
+//		}
 
-		// Place initial block
-		var initialBlock = (GameObject)Resources.Load("Prefabs/Holo/BuildableGridBlock", typeof(GameObject));
-		var newBlock = (GameObject)Instantiate(initialBlock, initialBlock.transform.position, initialBlock.transform.rotation);
-		newBlock.transform.parent = playerSpaceship_BuildableGrids.transform;
+//		// Place initial block
+//		var initialBlock = (GameObject)Resources.Load("Prefabs/Holo/BuildableGridBlock", typeof(GameObject));
+//		var newBlock = (GameObject)Instantiate(initialBlock, initialBlock.transform.position, initialBlock.transform.rotation);
+//		newBlock.transform.parent = playerSpaceship_BuildableGrids.transform;
 	}
 
 	public void SaveShip() {
@@ -725,26 +780,45 @@ public class BuildModeController : MonoBehaviour {
 				break;
 		}
 		
-		RefreshHolocursor();
+		RefreshHolocursorRef();
+		GetBlockOrientations();
 
 	}
 
-	public void RefreshHolocursor() {
+	public void RefreshHolocursorRef() {
 
-		_cursorBlock.SetActive(true);
+//		_cursorBlock.SetActive(true);
 
-		var refBlk = GameObject.FindGameObjectsWithTag("Game/HolocursorRef");
-		if (refBlk.Length > 0) {
+		List<GameObject> refBlk = new List<GameObject>();
+
+		if (GameObject.FindGameObjectWithTag("Game/HolocursorRef"))
+			refBlk = GameObject.FindGameObjectsWithTag("Game/HolocursorRef").ToList();
+
+		if (refBlk.Count > 0) {
 			foreach (var rb in refBlk) {
 				Destroy(rb);
 			}
 		}
-		var tmpBlk = (GameObject)Instantiate(_selectedBlock, _cursorBlock.transform.position - new Vector3(0, 5, 0), _cursorBlock.transform.rotation);
+
+		var tmpBlk = (GameObject)Instantiate(_selectedBlock, _cursorBlock.transform.position + new Vector3(0, -10, 0), _cursorBlock.transform.rotation);
 		tmpBlk.tag = "Game/HolocursorRef";
 		tmpBlk.GetComponent<Collider>().enabled = false;
 		tmpBlk.transform.parent = _cursorBlock.transform;
 		_cursorRefBlock = tmpBlk;
-		_cursorBlock.SetActive(false);
+		_cursorRefBlockMesh = tmpBlk.transform.Find("Mesh").gameObject;
+		//		_cursorBlock.SetActive(false);
+
+	}
+
+	public void GetBlockOrientations() {
+		
+		if (_cursorRefBlock.GetComponent<Block>().isRotateable)
+			blockOrientationGrids = _cursorRefBlock.transform.FindChild("MountPoints").GetComponentsInChildren<GridCollisionDetector>();
+
+//		foreach (var mountpoint in mountgrids) {
+//			if (mountpoint.gameObject.CompareTag("Spaceship/OrientationGrid"))
+//				blockOrientationGrids.Add(mountpoint);
+//		}
 
 	}
 

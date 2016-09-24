@@ -18,7 +18,7 @@ public class Block : MonoBehaviour {
 	public StructureType structureType;
 	public ComponentType componentType;
 
-	public bool[] mountPoint = {true, true, true, true};
+	public bool isRotateable = false;
 	public string blockName;
 	public float hull, mass, energyGen, energyCon, maneuver, thrust;
 
