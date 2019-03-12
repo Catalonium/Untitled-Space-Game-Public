@@ -42,7 +42,7 @@ public class VFX_Starfield : MonoBehaviour {
 		for (int i = 0; i < maxParticles; i++) {
 			ParticleSystem.Particle _newParticle = new ParticleSystem.Particle();
 			_newParticle.position = _cacheTransform.position + (Random.insideUnitSphere * _distanceToSpawn);
-			_newParticle.lifetime = Mathf.Infinity;
+			_newParticle.remainingLifetime = Mathf.Infinity;
 			_newParticle.startSize = Random.Range(minParticleSize, maxParticleSize);
 			_cacheParticleSystem.Emit(1);
 		}
